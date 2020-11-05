@@ -163,6 +163,8 @@ def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 		if len(pre[i]) == 0 or len(pre[i]) == 1:
 			tmp[i].append(start_segment_id)
 			print(i)
+			if fol[i] == []:
+				print("end")	
 
 		elif len(pre[i]) >= 2:
 			# print(i)
@@ -187,4 +189,4 @@ def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 
 topologicalSort(gfa_file, 0, pre, fol, tmp)
 # gfaSearch(gfa_file, 0, visited)
-# print(visited)
+# print(fol[1129:])
