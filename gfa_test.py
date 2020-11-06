@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 
 import sys
+import random
 
 sys.setrecursionlimit(2000)
 
@@ -98,41 +99,14 @@ def followingSegmentIDof(gfa_file, segment_id):
 	return fol_seg_list[segment_id]
 
 # gfa_file = readGFAfile("cactus-BRCA2.gfa")
-gfa_file = readGFAfile("graph.gfa")
+gfa_file = readGFAfile("minigraph2.gfa")
 # print(gfa_file[2])
 # print(precedingSegmentIDof(gfa_file, 0))
 # print(followingSegmentIDof(gfa_file, 0))
 
 # print(viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa_file, 17))
 
-visited = []
-def gfaSearch(gfa_file, start_segment_id, visited):
-
-	for i in followingSegmentIDof(gfa_file, start_segment_id):
-		pcnt = 0
-		print(i)
-		pcnt += 1
-		visited.append(i)
-		
-		# should we consider node DP merging?
-		# if preSeg(i) >= 2, we should. 
-		if len(precedingSegmentIDof(gfa_file, i)) == 0 or len(precedingSegmentIDof(gfa_file, i)) == 1:
-			pass
-		else:
-			if pcnt == len(precedingSegmentIDof(gfa_file, i)):
-				break
-			else:
-				gfaSearch(gfa_file, i, visited)
-			# print(visited)
-			# print("merge?")
-			# if followingSegmentIDof(gfa_file, i) != []:
-			# 	gfaSearch(gfa_file, i, visited)
-			
-		if followingSegmentIDof(gfa_file, i) == []:
-			print("end\n")
-
-		gfaSearch(gfa_file, i, visited)
-
+# preparing empty lists and a gfa file for running topological sort
 gfa = gfa_file[0]
 pre = []
 fol = []
@@ -144,20 +118,11 @@ for  i in range(len(gfa)):
 	fol.append(followingSegmentIDof(gfa_file, i))
 	tmp.append([])
 
+random.shuffle(gfa)
+# print(gfa)
+
 def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
-	# gfa = gfa_file[0]
-	# pre = []
-	# fol = []
-	# tmp = []
 
-	# queue = []
-
-	# for  i in range(len(gfa) + 1):
-		
-	# 	pre.append(precedingSegmentIDof(gfa_file, i))
-	# 	fol.append(followingSegmentIDof(gfa_file, i))
-	# 	tmp.append([])
-	# print(fol[start_segment_id])
 	for i in fol[start_segment_id]:
 		
 		if len(pre[i]) == 0 or len(pre[i]) == 1:
@@ -187,6 +152,38 @@ def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 		
 		topologicalSort(gfa, i, pre, fol, tmp)
 
-topologicalSort(gfa_file, 0, pre, fol, tmp)
+def topoSortGenePred(gfa, start_segment_id, pre, fol, tmp):
+
+	for i in fol[start_segment_id]:
+		
+		if len(pre[i]) == 0 or len(pre[i]) == 1:
+			tmp[i].append(start_segment_id)
+			print(i)
+			if fol[i] == []:
+				print("end")	
+
+		elif len(pre[i]) >= 2:
+			# print(i)
+			tmp[i].append(start_segment_id)
+			# print(tmp)
+
+			if (set(pre[i]) & set(tmp[i])) == set(pre[i]):
+				print("Segment ID " + str(i) + " : all preceding segments are visited, go! ")
+				print(i)
+				# continue
+				
+				if fol[i] == []:
+					print("end")	
+				
+				# continue
+
+			else:
+				print("Segment ID " + str(i) + " : not all preceding segments are visited, waiting!")
+				continue
+		
+		topoSortGenePred(gfa, i, pre, fol, tmp)
+
+topoSortGenePred(gfa, 0, pre, fol, tmp)
+# topologicalSort(gfa_file, 0, pre, fol, tmp)
 # gfaSearch(gfa_file, 0, visited)
 # print(fol[1129:])
