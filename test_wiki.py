@@ -137,8 +137,10 @@ def viterbi_w_g(states, log_start_p, trans_p, emit_p, gfa_file, segment_id):
         # print(st[1]["log_prob"])
         end_state_log_prob.append(st[1]["log_prob"])
 
-    print(tuple(end_state_log_prob))
+    # print(tuple(end_state_log_prob))
+    print(end_state_log_prob)
 
-
-
+    end_dict = dict((states[i], end_state_log_prob[i]) for i in range(len(states)))
+    print(end_dict)
+    return end_dict
 # viterbi_w(list_sequence, states, log_start_probability, transition_probability, emission_probability)

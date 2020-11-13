@@ -98,8 +98,8 @@ def followingSegmentIDof(gfa_file, segment_id):
 
 	return fol_seg_list[segment_id]
 
-# gfa_file = readGFAfile("cactus-BRCA2.gfa")
-gfa_file = readGFAfile("minigraph2.gfa")
+gfa_file = readGFAfile("cactus-BRCA2.gfa")
+# gfa_file = readGFAfile("minigraph2.gfa")
 # print(gfa_file[2])
 # print(precedingSegmentIDof(gfa_file, 0))
 # print(followingSegmentIDof(gfa_file, 0))
@@ -108,15 +108,17 @@ gfa_file = readGFAfile("minigraph2.gfa")
 
 # preparing empty lists and a gfa file for running topological sort
 gfa = gfa_file[0]
-pre = []
-fol = []
-tmp = []
+pre  = [] # The list of preceding segment(s)
+fol  = [] # The list of following segment(s)
+tmp  = [] # The list (will be used) to topologically sort the graph 
+data = [] # The list containing data used for backtracing
 
 for  i in range(len(gfa)):
 	
 	pre.append(precedingSegmentIDof(gfa_file, i))
 	fol.append(followingSegmentIDof(gfa_file, i))
 	tmp.append([])
+	data.append([])
 
 random.shuffle(gfa)
 # print(gfa)
@@ -152,22 +154,53 @@ def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 		
 		topologicalSort(gfa, i, pre, fol, tmp)
 
-def topoSortGenePred(gfa, start_segment_id, pre, fol, tmp):
+def topoSortGenePred(gfa, start_segment_id):
 
 	for i in fol[start_segment_id]:
 		
-		if len(pre[i]) == 0 or len(pre[i]) == 1:
+		if len(pre[i]) == 0:
 			tmp[i].append(start_segment_id)
 			print(i)
+
+			# To do:
+
+			# 1. using the last DP column of the preceding segment,
+			#    calculate the first DP column of the segment.
+			# 2. using the first DP column of the segment (calculated in 1),
+			#    calculate the DP matrix of this segment.
+
+			# Implement
+			
+			# 1. using the last DP column of the preceding segment,
+			#    calculate the first DP column of the segment.
+
 			if fol[i] == []:
 				print("end")	
+
+		elif len(pre[i]) == 1:
+			tmp[i].append(start_segment_id)
+			print(i)
 
 		elif len(pre[i]) >= 2:
 			# print(i)
 			tmp[i].append(start_segment_id)
 			# print(tmp)
 
-			if (set(pre[i]) & set(tmp[i])) == set(pre[i]):
+			if (set(pre[i]) & set(tmp[i])) != set(pre[i]):
+				print("Segment ID " + str(i) + " : not all preceding segments are visited, waiting!")
+
+				# To do:
+
+				# 1. using the last DP column of the preceding segment,
+				#    calculate the first DP column of the segment.
+				# 2. using the first DP column of the segment (calculated in 1),
+				#    calculate the DP matrix of this segment.
+
+				# data[i] = viterbi_w_g(states, data[int(fol[i][0])], transition_probability, emission_probability, gfa, i)
+				
+				continue
+				
+			else:
 				print("Segment ID " + str(i) + " : all preceding segments are visited, go! ")
 				print(i)
 				# continue
@@ -177,13 +210,9 @@ def topoSortGenePred(gfa, start_segment_id, pre, fol, tmp):
 				
 				# continue
 
-			else:
-				print("Segment ID " + str(i) + " : not all preceding segments are visited, waiting!")
-				continue
 		
-		topoSortGenePred(gfa, i, pre, fol, tmp)
+		topoSortGenePred(gfa, i)
 
-topoSortGenePred(gfa, 0, pre, fol, tmp)
-# topologicalSort(gfa_file, 0, pre, fol, tmp)
+topoSortGenePred(gfa, 0)
+# topologicalSort(gfa, 0, pre, fol, tmp)
 # gfaSearch(gfa_file, 0, visited)
-# print(fol[1129:])
