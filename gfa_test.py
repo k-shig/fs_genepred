@@ -98,8 +98,8 @@ def followingSegmentIDof(gfa_file, segment_id):
 
 	return fol_seg_list[segment_id]
 
-# gfa_file = readGFAfile("cactus-BRCA2.gfa")
-gfa_file = readGFAfile("minigraph2.gfa")
+gfa_file = readGFAfile("seq.gfa")
+# gfa_file = readGFAfile("minigraph2.gfa")
 # print(gfa_file[2])
 # print(precedingSegmentIDof(gfa_file, 0))
 # print(followingSegmentIDof(gfa_file, 0))
@@ -112,7 +112,7 @@ gfa = gfa_file[0]
 pre  = [] # The list of preceding segment(s)
 fol  = [] # The list of following segment(s)
 tmp  = [] # The list (will be used) to topologically sort the graph 
-data = [] # The list containing data used for backtracing
+data = [] # The list containing data (which will be) used for backtracing
 
 for  i in range(len(gfa)):
 	
@@ -122,8 +122,8 @@ for  i in range(len(gfa)):
 	data.append([])
 
 # random.shuffle(gfa)
-# print(pre)
-print(data)
+print(pre)
+# print(data)
 
 def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 
@@ -157,9 +157,9 @@ def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 		topologicalSort(gfa, i, pre, fol, tmp)
 
 def topoSortGenePred(gfa, start_segment_id):
-	# print(data)
 
 	for i in fol[start_segment_id]:
+		# print(i)
 		if len(pre[i]) == 0:
 			tmp[i].append(start_segment_id)
 			print(i)
@@ -190,7 +190,7 @@ def topoSortGenePred(gfa, start_segment_id):
 			# print(gfa[i])
 
 			if pre[i] == [0]: # initial prediction
-				# data[i].append(viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i))
+				data[i].append(viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i))
 				# data[i] = viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i)
 				
 				# seq = seq + gfa[i][1]
@@ -201,7 +201,7 @@ def topoSortGenePred(gfa, start_segment_id):
 				# print(pre[i])
 				# print(pre[i][0])
 				# print(data[pre[i][0]])
-				# data[i].append(viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i))
+				data[i].append(viterbi_w_g(states, data[pre[i][0]][0], transition_probability, emission_probability, gfa, i))
 				# data = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
 				
 				# seq = seq + gfa[i][1]
@@ -225,8 +225,8 @@ def topoSortGenePred(gfa, start_segment_id):
 				# 2. using the first DP column of the segment (calculated in 1),
 				#    calculate the DP matrix of this segment.
 				
-				# print(data[pre[i][0]])
-				# data[i].append(viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i))
+				print(len(data[pre[i][0]]))
+				data[i].append(viterbi_w_g(states, data[pre[i][0]][0], transition_probability, emission_probability, gfa, i))
 				# data[i] = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
 				# seq = seq + gfa[i][1]
 
@@ -236,8 +236,8 @@ def topoSortGenePred(gfa, start_segment_id):
 				print("Segment ID " + str(i) + " : all preceding segments are visited, go! ")
 				print(i)
 				# print(type(data[i]))
-				# print(data[pre[i][0]])
-				# data[i].append(viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i))
+				print(data[pre[i][0]])
+				data[i].append(viterbi_w_g(states, data[pre[i][1]][0], transition_probability, emission_probability, gfa, i))
 				# data[i] = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
 				# seq = seq + gfa[i][1]
 				# continue
@@ -247,12 +247,16 @@ def topoSortGenePred(gfa, start_segment_id):
 					pass	
 				
 				# continue
-
+		# print(data)
 		topoSortGenePred(gfa, i)
 
 
 
 topoSortGenePred(gfa, 0)
+
+for i in range(len(data)):
+	print(data[i])
+# print(data)
 # viterbi_w(list(seq), states, start_probability, transition_probability, emission_probability)
 # for i in range(len(data)):
 # 	print(len(data[i]))

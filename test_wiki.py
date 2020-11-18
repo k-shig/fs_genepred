@@ -86,11 +86,12 @@ def dptable(V):
 
 def viterbi_w_g(states, log_start_p, trans_p, emit_p, gfa_file, segment_id):
 
-    obs = list(gfa_file[0][segment_id - 1][1])
+    obs = list(gfa_file[segment_id][1])
 
     logV = [{}]
 	
     for st in states:
+        # print(st)
         logV[0][st] = {"log_prob": log_start_p[st] + math.log(emit_p[st][obs[0]]), "prev": None}
     
     # Run Viterbi when t > 0
@@ -138,9 +139,9 @@ def viterbi_w_g(states, log_start_p, trans_p, emit_p, gfa_file, segment_id):
         end_state_log_prob.append(st[1]["log_prob"])
 
     # print(tuple(end_state_log_prob))
-    print(end_state_log_prob)
+    # print(end_state_log_prob)
 
     end_dict = dict((states[i], end_state_log_prob[i]) for i in range(len(states)))
-    print(end_dict)
+    # print(end_dict)
     return end_dict
 # viterbi_w(list_sequence, states, log_start_probability, transition_probability, emission_probability)
