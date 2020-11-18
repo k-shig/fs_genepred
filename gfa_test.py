@@ -98,13 +98,14 @@ def followingSegmentIDof(gfa_file, segment_id):
 
 	return fol_seg_list[segment_id]
 
-gfa_file = readGFAfile("cactus-BRCA2.gfa")
-# gfa_file = readGFAfile("minigraph2.gfa")
+# gfa_file = readGFAfile("cactus-BRCA2.gfa")
+gfa_file = readGFAfile("minigraph2.gfa")
 # print(gfa_file[2])
 # print(precedingSegmentIDof(gfa_file, 0))
 # print(followingSegmentIDof(gfa_file, 0))
 
-# print(viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa_file, 17))
+# print(gfa_file)
+# viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa_file, 2)
 
 # preparing empty lists and a gfa file for running topological sort
 gfa = gfa_file[0]
@@ -120,8 +121,9 @@ for  i in range(len(gfa)):
 	tmp.append([])
 	data.append([])
 
-random.shuffle(gfa)
-# print(gfa)
+# random.shuffle(gfa)
+# print(pre)
+print(data)
 
 def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 
@@ -155,12 +157,14 @@ def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 		topologicalSort(gfa, i, pre, fol, tmp)
 
 def topoSortGenePred(gfa, start_segment_id):
+	# print(data)
 
 	for i in fol[start_segment_id]:
-		
 		if len(pre[i]) == 0:
 			tmp[i].append(start_segment_id)
 			print(i)
+			# print(type(data[i]))
+			# print(gfa[i])
 
 			# To do:
 
@@ -174,15 +178,40 @@ def topoSortGenePred(gfa, start_segment_id):
 			# 1. using the last DP column of the preceding segment,
 			#    calculate the first DP column of the segment.
 
+
 			if fol[i] == []:
-				print("end")	
+				# print("end")	
+				pass
 
 		elif len(pre[i]) == 1:
 			tmp[i].append(start_segment_id)
 			print(i)
+			# print(type(data[i]))
+			# print(gfa[i])
 
-		elif len(pre[i]) >= 2:
+			if pre[i] == [0]: # initial prediction
+				# data[i].append(viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i))
+				# data[i] = viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i)
+				
+				# seq = seq + gfa[i][1]
+				# viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i)
+				pass
+			
+			else:
+				# print(pre[i])
+				# print(pre[i][0])
+				# print(data[pre[i][0]])
+				# data[i].append(viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i))
+				# data = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
+				
+				# seq = seq + gfa[i][1]
+				pass
+			
+
+
+		elif len(pre[i]) >= 2: # merging node
 			# print(i)
+			# print(type(data[i]))
 			tmp[i].append(start_segment_id)
 			# print(tmp)
 
@@ -195,24 +224,37 @@ def topoSortGenePred(gfa, start_segment_id):
 				#    calculate the first DP column of the segment.
 				# 2. using the first DP column of the segment (calculated in 1),
 				#    calculate the DP matrix of this segment.
-
-				# data[i] = viterbi_w_g(states, data[int(fol[i][0])], transition_probability, emission_probability, gfa, i)
 				
+				# print(data[pre[i][0]])
+				# data[i].append(viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i))
+				# data[i] = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
+				# seq = seq + gfa[i][1]
+
 				continue
 				
 			else:
 				print("Segment ID " + str(i) + " : all preceding segments are visited, go! ")
 				print(i)
+				# print(type(data[i]))
+				# print(data[pre[i][0]])
+				# data[i].append(viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i))
+				# data[i] = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
+				# seq = seq + gfa[i][1]
 				# continue
 				
 				if fol[i] == []:
-					print("end")	
+					# print("end")
+					pass	
 				
 				# continue
 
-		
 		topoSortGenePred(gfa, i)
 
+
+
 topoSortGenePred(gfa, 0)
+# viterbi_w(list(seq), states, start_probability, transition_probability, emission_probability)
+# for i in range(len(data)):
+# 	print(len(data[i]))
 # topologicalSort(gfa, 0, pre, fol, tmp)
 # gfaSearch(gfa_file, 0, visited)
