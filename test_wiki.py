@@ -57,8 +57,9 @@ def viterbi_w(obs, states, log_start_p, trans_p, emit_p):
             log_max_prob = log_max_tr_prob + math.log(emit_p[st][obs[t]])
             logV[t][st] = {"log_prob": log_max_prob, "prev": prev_st_selected}
 
-    for line in dptable(logV):
-        print(line)
+    # for line in dptable(logV):
+    #     print(line)
+    #     pass
 
     opt = []
     log_max_prob = 0.0 - math.inf
@@ -76,7 +77,24 @@ def viterbi_w(obs, states, log_start_p, trans_p, emit_p):
         opt.insert(0, logV[t + 1][previous]["prev"])
         previous = logV[t + 1][previous]["prev"]
 
-    print ('The steps of states are ' + ' '.join(opt) + ' with highest log - probability of %s' % log_max_prob)
+    # print ('The steps of states are ' + ' '.join(opt) + ' with highest log - probability of %s' % log_max_prob)
+
+    end_state_log_prob = []
+
+    # print(logV[-1])
+    for st in logV[-1].items():
+        # print(st[1]["log_prob"])
+        end_state_log_prob.append(st[1]["log_prob"])
+
+    # print(tuple(end_state_log_prob))
+    # print(end_state_log_prob)
+
+    end_dict = dict((states[i], end_state_log_prob[i]) for i in range(len(states)))
+
+    print(end_dict)
+    return logV
+
+    
 
 def dptable(V):
     # Print a table of steps from dictionary
@@ -84,16 +102,31 @@ def dptable(V):
     for state in V[0]:
         yield "%.7s: " % state + " ".join("%.7s" % ("%f" % v[state]["log_prob"]) for v in V)
 
-def viterbi_w_g(states, log_start_p, trans_p, emit_p, gfa_file, segment_id):
+def viterbi_w_g(states, log_start_p, trans_p, emit_p, gfa_file, segment_id, is_first):
 
     obs = list(gfa_file[segment_id][1])
 
     logV = [{}]
 	
-    for st in states:
-        # print(st)
-        logV[0][st] = {"log_prob": log_start_p[st] + math.log(emit_p[st][obs[0]]), "prev": None}
-    
+    # print("lgstp = " + str(log_start_p))
+    if is_first == True:
+        for st in states:
+            logV[0][st] = {"log_prob": log_start_p[st] + math.log(emit_p[st][obs[0]]), "prev": None}
+
+    elif is_first == False:
+        for st in states:
+            # logV[0][st] = {"log_prob": log_start_p[st]}
+            log_max_tr_prob = log_start_p[states[0]] + math.log(trans_p[states[0]][st])
+            prev_st_selected = states[0]
+            for prev_st in states[1:]:
+                log_tr_prob = log_start_p[prev_st] + math.log(trans_p[prev_st][st])
+                if log_tr_prob > log_max_tr_prob:
+                    log_max_tr_prob = log_tr_prob
+                    prev_st_selected = prev_st
+
+            log_max_prob = log_max_tr_prob + math.log(emit_p[st][obs[0]])
+            logV[0][st] = {"log_prob": log_max_prob, "prev": prev_st_selected}
+
     # Run Viterbi when t > 0
     for t in range(1, len(obs)):
         logV.append({})
@@ -142,6 +175,7 @@ def viterbi_w_g(states, log_start_p, trans_p, emit_p, gfa_file, segment_id):
     # print(end_state_log_prob)
 
     end_dict = dict((states[i], end_state_log_prob[i]) for i in range(len(states)))
-    # print(end_dict)
+    print(logV[-1])
+    # print("914 : " + str(logV[914]))
     return end_dict
 # viterbi_w(list_sequence, states, log_start_probability, transition_probability, emission_probability)
