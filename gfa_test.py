@@ -98,7 +98,7 @@ def followingSegmentIDof(gfa_file, segment_id):
 
 	return fol_seg_list[segment_id]
 
-gfa_file = readGFAfile("seq.gfa")
+gfa_file = readGFAfile("minigraph2.gfa")
 # gfa_file = readGFAfile("cactus-BRCA2.gfa")
 # print(gfa_file[2])
 # print(precedingSegmentIDof(gfa_file, 0))
@@ -108,11 +108,14 @@ gfa_file = readGFAfile("seq.gfa")
 # viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa_file, 2)
 
 # preparing empty lists and a gfa file for running topological sort
-gfa = gfa_file[0]
-pre  = [] # The list of preceding segment(s)
-fol  = [] # The list of following segment(s)
-tmp  = [] # The list (will be used) to topologically sort the graph 
-data = [] # The list containing data (which will be) used for backtracing
+gfa   = gfa_file[0]
+pre   = [] # The list of preceding segment(s)
+fol   = [] # The list of following segment(s)
+tmp   = [] # The list (will be used) to topologically sort the graph 
+data  = [] # The list containing data (which will be) used for backtracing
+paths = [] # The list of genepredicted paths
+pcnt  = 0  # The number of paths
+
 
 for  i in range(len(gfa)):
 	
@@ -120,7 +123,7 @@ for  i in range(len(gfa)):
 	fol.append(followingSegmentIDof(gfa_file, i))
 	tmp.append([])
 	data.append([])
-
+	
 # random.shuffle(gfa)
 print(pre)
 # print(data)
@@ -141,7 +144,7 @@ def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 			# print(tmp)
 
 			if (set(pre[i]) & set(tmp[i])) == set(pre[i]):
-				print("Segment ID " + str(i) + " : all preceding segments are visited, go! ")
+				# print("Segment ID " + str(i) + " : all preceding segments are visited, go! ")
 				print(i)
 				# continue
 				
@@ -151,7 +154,7 @@ def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 				# continue
 
 			else:
-				print("Segment ID " + str(i) + " : not all preceding segments are visited, waiting!")
+				# print("Segment ID " + str(i) + " : not all preceding segments are visited, waiting!")
 				continue
 		
 		topologicalSort(gfa, i, pre, fol, tmp)
@@ -160,11 +163,9 @@ def topoSortGenePred(gfa, start_segment_id):
 
 	for i in fol[start_segment_id]:
 		# print(i)
-		if len(pre[i]) == 0:
+		if len(pre[i]) == 0: # as usual, no cases get into this if-sentence. 
 			tmp[i].append(start_segment_id)
 			print(i)
-			# print(type(data[i]))
-			# print(gfa[i])
 
 			# To do:
 
@@ -180,45 +181,38 @@ def topoSortGenePred(gfa, start_segment_id):
 
 
 			if fol[i] == []:
-				# print("end")	
 				pass
 
 		elif len(pre[i]) == 1:
 			tmp[i].append(start_segment_id)
 			print(i)
-			# print(type(data[i]))
-			# print(gfa[i])
 
 			if pre[i] == [0]: # initial prediction
 				data[i].append(viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i, True))
-				# data[i] = viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i)
-				
-				# seq = seq + gfa[i][1]
-				# viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i)
+				paths.append([])
+				paths[pcnt].append(i)
 				pass
 			
 			else:
-				# print(pre[i])
-				# print(pre[i][0])
-				# print(data[pre[i][0]])
-				data[i].append(viterbi_w_g(states, data[pre[i][0]][0], transition_probability, emission_probability, gfa, i, False))
-				# data = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
-				
-				# seq = seq + gfa[i][1]
+				# ! insert for sentence !
+				# data[i].append(viterbi_w_g(states, data[pre[i][0]][0], transition_probability, emission_probability, gfa, i, False))
+				data[i].append(viterbi_w_g(states, data[pre[i][0]][-1], transition_probability, emission_probability, gfa, i, False))
+
+				paths[pcnt].append(i)
 				pass
 			
 
 
 		elif len(pre[i]) >= 2: # merging node
+			print(i)
 			print("merging node\n")
-			# print(i)
-			# print(type(data[i]))
 			tmp[i].append(start_segment_id)
-			# print(tmp)
 
 			if (set(pre[i]) & set(tmp[i])) != set(pre[i]):
 				print("Segment ID " + str(i) + " : not all preceding segments are visited, waiting!")
-
+				paths.append(paths[-1])
+				print(paths)
+				# paths[-1] = paths[tcnt]
 				# To do:
 
 				# 1. using the last DP column of the preceding segment,
@@ -226,22 +220,21 @@ def topoSortGenePred(gfa, start_segment_id):
 				# 2. using the first DP column of the segment (calculated in 1),
 				#    calculate the DP matrix of this segment.
 				
-				# print(len(data[pre[i][0]]))
+				# predict with preceding first segment
+				# data[i].append(viterbi_w_g(states, data[pre[i][0]][0], transition_probability, emission_probability, gfa, i, False)) 
+
+				# predict with preceding last segment
+				# ! insert for sentence !
 				data[i].append(viterbi_w_g(states, data[pre[i][len(data[i])]][0], transition_probability, emission_probability, gfa, i, False))
-				# data[i] = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
-				# seq = seq + gfa[i][1]
 
 				continue
 				
 			else:
 				print("Segment ID " + str(i) + " : all preceding segments are visited, go! ")
 				print(i)
-				# print(type(data[i]))
-				# print(data[pre[i][0]])
+
+				# predict with preceding last segment
 				data[i].append(viterbi_w_g(states, data[pre[i][len(data[i])]][0], transition_probability, emission_probability, gfa, i, False))
-				# data[i] = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
-				# seq = seq + gfa[i][1]
-				# continue
 				
 				if fol[i] == []:
 					# print("end")
@@ -253,16 +246,17 @@ def topoSortGenePred(gfa, start_segment_id):
 		
 topoSortGenePred(gfa, 0)
 
+print(paths)
 for i in range(len(data)):
 	print(data[i])
 
-print("\n segments yosoku \n")
+# print("\n segments yosoku \n")
 
-seq1 = gfa[1][1] + gfa[2][1] + gfa[3][1]
-seq2 = gfa[1][1] + gfa[3][1]
+# seq1 = gfa[1][1] + gfa[2][1] + gfa[3][1]
+# seq2 = gfa[1][1] + gfa[3][1]
 
-viterbi_w(list(seq1), states, start_probability, transition_probability, emission_probability)
-viterbi_w(list(seq2), states, start_probability, transition_probability, emission_probability)
+# viterbi_w(list(seq1), states, start_probability, transition_probability, emission_probability)
+# viterbi_w(list(seq2), states, start_probability, transition_probability, emission_probability)
 # print("\n segments yosoku \n")
 # print(v123[914])
 # print(v13[914])
