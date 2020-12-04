@@ -175,7 +175,7 @@ def viterbi_w_g(states, log_start_p, trans_p, emit_p, gfa_file, segment_id, is_f
     # print(end_state_log_prob)
 
     end_dict = dict((states[i], end_state_log_prob[i]) for i in range(len(states)))
-    print(logV[-1])
+    # print(logV[-1])
     # print("914 : " + str(logV[914]))
     return end_dict
 # viterbi_w(list_sequence, states, log_start_probability, transition_probability, emission_probability)

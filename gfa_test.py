@@ -98,7 +98,7 @@ def followingSegmentIDof(gfa_file, segment_id):
 
 	return fol_seg_list[segment_id]
 
-gfa_file = readGFAfile("seq.gfa")
+gfa_file = readGFAfile("832.gfa")
 # gfa_file = readGFAfile("cactus-BRCA2.gfa")
 # print(gfa_file[2])
 # print(precedingSegmentIDof(gfa_file, 0))
@@ -113,6 +113,10 @@ pre  = [] # The list of preceding segment(s)
 fol  = [] # The list of following segment(s)
 tmp  = [] # The list (will be used) to topologically sort the graph 
 data = [] # The list containing data (which will be) used for backtracing
+
+# hitotsu mae no segment ID
+hitotsumae = None
+hitotsumae_cnt = 0
 
 for  i in range(len(gfa)):
 	
@@ -156,13 +160,13 @@ def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 		
 		topologicalSort(gfa, i, pre, fol, tmp)
 
-def topoSortGenePred(gfa, start_segment_id):
-
+def topoSortGenePred(gfa, start_segment_id, hitotsumae, hitotsumae_cnt):
+	print("start : " + str(start_segment_id))
 	for i in fol[start_segment_id]:
 		# print(i)
 		if len(pre[i]) == 0:
 			tmp[i].append(start_segment_id)
-			print(i)
+			print("id : " + str(i))
 			# print(type(data[i]))
 			# print(gfa[i])
 
@@ -184,12 +188,15 @@ def topoSortGenePred(gfa, start_segment_id):
 				pass
 
 		elif len(pre[i]) == 1:
+			
 			tmp[i].append(start_segment_id)
-			print(i)
+			print("id : " + str(i))
+			print("pre : 1")
 			# print(type(data[i]))
 			# print(gfa[i])
 
 			if pre[i] == [0]: # initial prediction
+				# hitotsumae = 0
 				data[i].append(viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i, True))
 				# data[i] = viterbi_w_g(states, start_probability, transition_probability, emission_probability, gfa, i)
 				
@@ -201,7 +208,15 @@ def topoSortGenePred(gfa, start_segment_id):
 				# print(pre[i])
 				# print(pre[i][0])
 				# print(data[pre[i][0]])
-				data[i].append(viterbi_w_g(states, data[pre[i][0]][0], transition_probability, emission_probability, gfa, i, False))
+				# hitotsumae = pre[i][0]
+				print(pre[i])
+				print(len(data[i]))
+				print(pre[i][len(data[i])])
+				print(len(data[pre[i][len(data[i])]]))
+				for j in range(len(data[pre[i][0]])):
+					print("j : " + str(j))
+					data[i].append(viterbi_w_g(states, data[pre[i][0]][j], transition_probability, emission_probability, gfa, i, False))
+					print(len(data[i]))
 				# data = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
 				
 				# seq = seq + gfa[i][1]
@@ -211,12 +226,15 @@ def topoSortGenePred(gfa, start_segment_id):
 
 		elif len(pre[i]) >= 2: # merging node
 			print("merging node\n")
-			# print(i)
-			# print(type(data[i]))
+			print("id : " + str(i))
+			print("pre : 2~")
+			
+			print("1tumae  : " + str(hitotsumae))
 			tmp[i].append(start_segment_id)
 			# print(tmp)
 
-			if (set(pre[i]) & set(tmp[i])) != set(pre[i]):
+			if (set(pre[i]) & set(tmp[i])) != set(pre[i]): # totemo omoi
+				hitotsumae = pre[i][hitotsumae_cnt]
 				print("Segment ID " + str(i) + " : not all preceding segments are visited, waiting!")
 
 				# To do:
@@ -227,18 +245,46 @@ def topoSortGenePred(gfa, start_segment_id):
 				#    calculate the DP matrix of this segment.
 				
 				# print(len(data[pre[i][0]]))
-				data[i].append(viterbi_w_g(states, data[pre[i][len(data[i])]][0], transition_probability, emission_probability, gfa, i, False))
+				print(pre[i])
+				print(len(data[i]))
+				print(pre[i][len(data[i])])
+				print(len(data[pre[i][len(data[i])]]))
+				
+				for j in range(len(data[hitotsumae])):
+					# pass
+					print("j : " + str(j))
+					print(pre[i][len(data[i])])
+					# data[i].append(viterbi_w_g(states, data[pre[i][len(data[i])]][j], transition_probability, emission_probability, gfa, i, False))
+					# data[i].append(viterbi_w_g(states, data[hitotsumae][j], transition_probability, emission_probability, gfa, i, False))
+					print(len(data[i]))
+				print(data)
 				# data[i] = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
 				# seq = seq + gfa[i][1]
-
+				
+				hitotsumae_cnt = hitotsumae_cnt + 1
 				continue
 				
 			else:
+				# hitotsumae = pre[i][hitotsumae_cnt]
 				print("Segment ID " + str(i) + " : all preceding segments are visited, go! ")
-				print(i)
+				print("id : " + str(i))
 				# print(type(data[i]))
 				# print(data[pre[i][0]])
-				data[i].append(viterbi_w_g(states, data[pre[i][len(data[i])]][0], transition_probability, emission_probability, gfa, i, False))
+				print(pre[i])
+				print(len(data[i]))
+				# print(pre[i][len(data[i])])
+				# print(len(data[pre[i][len(data[i])]]))
+				# print("1tumae  : " + str(hitotsumae))
+				
+				# for j in range(len(data[hitotsumae])):
+				# 	data[i].append(viterbi_w_g(states, data[hitotsumae][j], transition_probability, emission_probability, gfa, i, False))
+
+				for j in pre[i]:
+					for k in data[j]:
+						data[i].append(viterbi_w_g(states, k, transition_probability, emission_probability, gfa, i, False))
+
+				print(len(data[i]))
+				print(data)
 				# data[i] = viterbi_w_g(states, data[pre[i][0]], transition_probability, emission_probability, gfa, i)
 				# seq = seq + gfa[i][1]
 				# continue
@@ -249,20 +295,20 @@ def topoSortGenePred(gfa, start_segment_id):
 				
 				# continue
 		# print(data)
-		topoSortGenePred(gfa, i)
+		topoSortGenePred(gfa, i, hitotsumae, hitotsumae_cnt)
 		
-topoSortGenePred(gfa, 0)
+topoSortGenePred(gfa, 0, hitotsumae, hitotsumae_cnt)
 
 for i in range(len(data)):
-	print(data[i])
+	print(len(data[i]))
 
-print("\n segments yosoku \n")
+# print("\n segments yosoku \n")
 
-seq1 = gfa[1][1] + gfa[2][1] + gfa[3][1]
-seq2 = gfa[1][1] + gfa[3][1]
+# seq1 = gfa[1][1] + gfa[2][1] + gfa[3][1]
+# seq2 = gfa[1][1] + gfa[3][1]
 
-viterbi_w(list(seq1), states, start_probability, transition_probability, emission_probability)
-viterbi_w(list(seq2), states, start_probability, transition_probability, emission_probability)
+# viterbi_w(list(seq1), states, start_probability, transition_probability, emission_probability)
+# viterbi_w(list(seq2), states, start_probability, transition_probability, emission_probability)
 # print("\n segments yosoku \n")
 # print(v123[914])
 # print(v13[914])
