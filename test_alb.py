@@ -103,12 +103,12 @@ def viterbi_log(A, C, B, O):
     for n in range(N-2, 0, -1):
         S_opt[n] = E[int(S_opt[n+1]), n]
 
-    return S_opt, D_log, E
+    # return S_opt, D_log, E
     # return D_log[:, -1]
+    return S_opt
 
 
 def viterbi_log_g(start_probability, gfa, segment_id, is_first):
-
     # Define model parameters
 
     # np_transition_probability
