@@ -8,34 +8,54 @@ sys.setrecursionlimit(2000)
 
 from test_wiki import *
 from genepred import *
+from test_alb import *
 
 # model : to be discussed
 states = ("N", "E1", "E2", "E3", "I1", "I2", "I3")
 
 # model : to be discussed
 # log values!
-start_probability = {"N" : math.log(0.91), "E1" : math.log(pow(10, -30)), "E2" : math.log(pow(10, -30)), "E3" : math.log(pow(10, -30)), "I1" : math.log(0.03), "I2" : math.log(0.03), "I3": math.log(0.03)}
+# start_probability = {"N" : math.log(0.91), "E1" : math.log(pow(10, -30)), "E2" : math.log(pow(10, -30)), "E3" : math.log(pow(10, -30)), "I1" : math.log(0.03), "I2" : math.log(0.03), "I3": math.log(0.03)}
+start_probability = np.array([0.91, 0.0, 0.0, 0.0, 0.03, 0.03, 0.03])
 
-transition_probability = {
-    "N"  : {"N" : 0.90, "E1" : 0.10, "E2" : pow(10, -30), "E3" : pow(10, -30), "I1" : pow(10, -30), "I2" : pow(10, -30), "I3" : pow(10, -30)},
-    "E1" : {"N" : pow(10, -30), "E1" : pow(10, -30), "E2" : 0.95, "E3" : pow(10, -30), "I1" : 0.05, "I2" : pow(10, -30), "I3" : pow(10, -30)},
-    "E2" : {"N" : pow(10, -30), "E1" : pow(10, -30), "E2" : pow(10, -30), "E3" : 0.95, "I1" : pow(10, -30), "I2" : 0.05, "I3" : pow(10, -30)},
-    "E3" : {"N" : 0.01, "E1" : 0.94, "E2" : pow(10, -30), "E3" : pow(10, -30), "I1" : pow(10, -30), "I2" : pow(10, -30), "I3" : 0.05},
-    "I1" : {"N" : pow(10, -30), "E1" : pow(10, -30), "E2" : 0.01, "E3" : pow(10, -30), "I1" : 0.99, "I2" : pow(10, -30), "I3" : pow(10, -30)},
-    "I2" : {"N" : pow(10, -30), "E1" : pow(10, -30), "E2" : pow(10, -30), "E3" : 0.01, "I1" : pow(10, -30), "I2" : 0.99, "I3" : pow(10, -30)},
-    "I3" : {"N" : pow(10, -30), "E1" : 0.01, "E2" : pow(10, -30), "E3" : pow(10, -30), "I1" : pow(10, -30), "I2" : pow(10, -30), "I3" : 0.99}
-}
+# transition_probability = {
+#     "N"  : {"N" : 0.90, "E1" : 0.10, "E2" : pow(10, -30), "E3" : pow(10, -30), "I1" : pow(10, -30), "I2" : pow(10, -30), "I3" : pow(10, -30)},
+#     "E1" : {"N" : pow(10, -30), "E1" : pow(10, -30), "E2" : 0.95, "E3" : pow(10, -30), "I1" : 0.05, "I2" : pow(10, -30), "I3" : pow(10, -30)},
+#     "E2" : {"N" : pow(10, -30), "E1" : pow(10, -30), "E2" : pow(10, -30), "E3" : 0.95, "I1" : pow(10, -30), "I2" : 0.05, "I3" : pow(10, -30)},
+#     "E3" : {"N" : 0.01, "E1" : 0.94, "E2" : pow(10, -30), "E3" : pow(10, -30), "I1" : pow(10, -30), "I2" : pow(10, -30), "I3" : 0.05},
+#     "I1" : {"N" : pow(10, -30), "E1" : pow(10, -30), "E2" : 0.01, "E3" : pow(10, -30), "I1" : 0.99, "I2" : pow(10, -30), "I3" : pow(10, -30)},
+#     "I2" : {"N" : pow(10, -30), "E1" : pow(10, -30), "E2" : pow(10, -30), "E3" : 0.01, "I1" : pow(10, -30), "I2" : 0.99, "I3" : pow(10, -30)},
+#     "I3" : {"N" : pow(10, -30), "E1" : 0.01, "E2" : pow(10, -30), "E3" : pow(10, -30), "I1" : pow(10, -30), "I2" : pow(10, -30), "I3" : 0.99}
+# }
+transition_probability = np.array(
+	[[0.90, 0.10, 0.0, 0.0, 0.0, 0.0, 0.0],
+	[0.0, 0.0, 0.95, 0.0, 0.05, 0.0, 0.0],
+	[0.0, 0.0, 0.0, 0.95, 0.0, 0.05, 0.0],
+	[0.01, 0.94, 0.0, 0.0, 0.0, 0.0, 0.05],
+	[0.0, 0.0, 0.01, 0.0, 0.99, 0.0, 0.0],
+	[0.0, 0.0, 0.0, 0.01, 0.0, 0.99, 0.0],
+	[0.0, 0.01, 0.0, 0.0, 0.0, 0.0, 0.99]]
+)
 
 # model : to be discussed
-emission_probability = {
-    "N"  : {"A" : 0.10, "T" : 0.10, "G" : 0.40, "C" : 0.40},
-    "E1" : {"A" : 0.30, "T" : 0.30, "G" : 0.20, "C" : 0.20},
-    "E2" : {"A" : 0.30, "T" : 0.30, "G" : 0.20, "C" : 0.20},
-    "E3" : {"A" : 0.30, "T" : 0.30, "G" : 0.20, "C" : 0.20},
-    "I1" : {"A" : 0.10, "T" : 0.10, "G" : 0.40, "C" : 0.40},
-    "I2" : {"A" : 0.10, "T" : 0.10, "G" : 0.40, "C" : 0.40},
-    "I3" : {"A" : 0.10, "T" : 0.10, "G" : 0.40, "C" : 0.40},
-    }
+# emission_probability = {
+#     "N"  : {"A" : 0.10, "T" : 0.10, "G" : 0.40, "C" : 0.40},
+#     "E1" : {"A" : 0.30, "T" : 0.30, "G" : 0.20, "C" : 0.20},
+#     "E2" : {"A" : 0.30, "T" : 0.30, "G" : 0.20, "C" : 0.20},
+#     "E3" : {"A" : 0.30, "T" : 0.30, "G" : 0.20, "C" : 0.20},
+#     "I1" : {"A" : 0.10, "T" : 0.10, "G" : 0.40, "C" : 0.40},
+#     "I2" : {"A" : 0.10, "T" : 0.10, "G" : 0.40, "C" : 0.40},
+#     "I3" : {"A" : 0.10, "T" : 0.10, "G" : 0.40, "C" : 0.40},
+#     }
+emission_probability = np.array(
+	[[0.10, 0.10, 0.40, 0.40],
+	[0.30, 0.30, 0.20, 0.20],
+	[0.30, 0.30, 0.20, 0.20],
+	[0.30, 0.30, 0.20, 0.20],
+	[0.10, 0.10, 0.40, 0.40],
+	[0.10, 0.10, 0.40, 0.40],
+	[0.10, 0.10, 0.40, 0.40]]
+)
 
 # return the list contains [[segment_list], [link_list]]
 def readGFAfile(filename):
@@ -98,7 +118,7 @@ def followingSegmentIDof(gfa_file, segment_id):
 
 	return fol_seg_list[segment_id]
 
-gfa_file = readGFAfile("832.gfa")
+gfa_file = readGFAfile("minigraph3.gfa")
 # gfa_file = readGFAfile("cactus-BRCA2.gfa")
 # print(gfa_file[2])
 # print(precedingSegmentIDof(gfa_file, 0))
@@ -122,13 +142,14 @@ for  i in range(len(gfa)):
 	
 	pre.append(precedingSegmentIDof(gfa_file, i))
 	fol.append(followingSegmentIDof(gfa_file, i))
-	tmp.append([])
 	data.append([])
 
-# random.shuffle(gfa)
-print(pre)
-# print(data)
+for i in range(len(pre)):
+	tmp.append(len(pre[i]))
 
+print(tmp)
+print(pre)
+print(fol)
 def topologicalSort(gfa, start_segment_id, pre, fol, tmp):
 
 	for i in fol[start_segment_id]:
@@ -223,7 +244,6 @@ def topoSortGenePred(gfa, start_segment_id, hitotsumae, hitotsumae_cnt):
 				pass
 			
 
-
 		elif len(pre[i]) >= 2: # merging node
 			print("merging node\n")
 			print("id : " + str(i))
@@ -296,8 +316,86 @@ def topoSortGenePred(gfa, start_segment_id, hitotsumae, hitotsumae_cnt):
 				# continue
 		# print(data)
 		topoSortGenePred(gfa, i, hitotsumae, hitotsumae_cnt)
-		
-topoSortGenePred(gfa, 0, hitotsumae, hitotsumae_cnt)
+
+def topoSortGenePred2(gfa, start_segment_id):
+	print("start : " + str(start_segment_id))
+	for i in fol[start_segment_id]:
+		# print(i)
+		if len(pre[i]) == 0:
+			# tmp[i].append(start_segment_id)
+			print("id : " + str(i))
+
+			if fol[i] == []:
+				pass
+
+		elif len(pre[i]) == 1:
+			
+			# tmp[i].append(start_segment_id)
+			print("id : " + str(i))
+			print("pre : 1")
+
+			if pre[i] == [0]: # initial prediction
+
+				data[i].append(viterbi_log_g(start_probability, gfa, i, True))
+				print("added")
+				pass
+			
+			else:
+				for j in range(len(data[pre[i][0]])):
+					print("j : " + str(j))
+					data[i].append(viterbi_log_g(data[pre[i][0]][j], gfa, i, False))
+					print("added")
+					# print(len(data[i]))
+				pass
+			
+
+		elif len(pre[i]) >= 2: # merging node
+			print("merging node")
+			print("id : " + str(i))
+			print("tmpi = " + str(tmp[i]))
+
+			# if (set(pre[i]) & set(tmp[i])) != set(pre[i]): # totemo omoi
+			if tmp[i] > 1:
+				tmp[i] = tmp[i] - 1
+				print("Segment ID " + str(i) + " : not all preceding segments are visited, waiting!")
+
+				for j in range(len(data[start_segment_id])):
+					# pass
+					print("j : " + str(j))
+					# data[i].append(viterbi_log_g(data[start_segment_id][j], gfa, i, False))
+					# print("added")
+					print(len(data[i]))
+				print(data)
+				
+				continue
+				
+			elif tmp[i] == 1:
+
+				print("Segment ID " + str(i) + " : all preceding segments are visited, go! ")
+				print("id : " + str(i))
+				print(pre[i])
+				print(len(data[i]))
+
+				for j in pre[i]:
+					for k in data[j]:
+						data[i].append(viterbi_log_g(k, gfa, i, False))
+						print("added")
+						
+				print(len(data[i]))
+				print(data)
+
+				
+				if fol[i] == []:
+					print("end")
+					pass	
+				
+				# continue
+		# print(data)
+		topoSortGenePred2(gfa, i)
+
+
+# topoSortGenePred(gfa, 0, hitotsumae, hitotsumae_cnt)
+topoSortGenePred2(gfa, 0)
 
 for i in range(len(data)):
 	print(len(data[i]))
@@ -307,8 +405,8 @@ for i in range(len(data)):
 # seq1 = gfa[1][1] + gfa[2][1] + gfa[3][1]
 # seq2 = gfa[1][1] + gfa[3][1]
 
-# viterbi_w(list(seq1), states, start_probability, transition_probability, emission_probability)
-# viterbi_w(list(seq2), states, start_probability, transition_probability, emission_probability)
-# print("\n segments yosoku \n")
+# print(viterbi_log(transition_probability, start_probability, emission_probability, seq2num(seq1)))
+# print(viterbi_log(transition_probability, start_probability, emission_probability, seq2num(seq2)))
+# # print("\n segments yosoku \n")
 # print(v123[914])
 # print(v13[914])
