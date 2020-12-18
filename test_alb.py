@@ -144,6 +144,11 @@ def viterbi_log(transition_probability, start_probability, emission_probability,
         E_m[:, n-1] = np.argmax(Dlog_plus_trans_log_sqm, axis = 1)
         D_log_m[:, n] = np.add(emission_probability_log[:, O[n]] , temp_sum_m)
 
+        Dlog_plus_trans_log_sqm = l142_np_add(transition_probability_log.T, D_log_m[:, n-1])
+        temp_sum_m = l143_np_max(Dlog_plus_trans_log_sqm)
+        E_m[:, n-1] = l144_np_argmax(Dlog_plus_trans_log_sqm)
+        D_log_m[:, n] = l145_np_add(emission_probability_log[:, O[n]] , temp_sum_m)
+
         # print("tra", transition_probability.flags["F_CONTIGUOUS"])
         # print("emi", emission_probability_log.flags["F_CONTIGUOUS"])
         # print("Dlog_plus_Alog_sqm", Dlog_plus_Alog_sqm.flags["F_CONTIGUOUS"])
@@ -161,6 +166,8 @@ def viterbi_log(transition_probability, start_probability, emission_probability,
 
     # Backtracking
     # print("Backtracking start")
+
+
     S_opt = np.zeros(N).astype(np.int32)
     S_opt[-1] = np.argmax(D_log_m[:, -1])
 
@@ -253,13 +260,27 @@ def viterbi_log_g(start_probability, transition_probability, emission_probabilit
 
     return D_log_m[:, -1]
 
+# L142 Dlog_plus_trans_log_sqm = np.add(transition_probability_log.T, D_log_m[:, n-1])
+def l142_np_add(x, y):
+    return np.add(x, y)
+
+# L143 temp_sum_m = np.max(Dlog_plus_trans_log_sqm, axis = 1)
+def l143_np_max(x):
+    return np.max(x, axis = 1)
+
+def l144_np_argmax(x):
+    return np.argmax(x, axis = 1)
+
+def l145_np_add(x, y):
+    return np.add(x, y)
+
 # for time plotting
 
 state_num_list = [10, 50, 100, 500, 1000, 2000,3000, 4000, 5000, 8000, 10000]
 
 state_num_list = [3000, 4000, 5000, 8000, 10000]
 
-state_num_list = [100]
+state_num_list = [1000]
 
 
 
