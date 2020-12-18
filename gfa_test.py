@@ -243,29 +243,23 @@ def topoSortGenePred(gfa, start_segment_id, hitotsumae, hitotsumae_cnt):
 
 def topoSortGenePred2(gfa, start_segment_id):
 	
-	print(start_segment_id)
+	# print("\n")
+	print("start_segment_id", start_segment_id)
 		
+	print("fol,", fol[start_segment_id])
 	for i in fol[start_segment_id]:
 
+		print("startseg, i", start_segment_id, i)
+
 		if len(pre[i]) == 0: 
+
 			pass
-			# allpath[i].append(np.array([i]))
-			# allpath[i] = np.append(allpath[i], np.array[i])
-
-			if fol[i] == []:
-
-				pass
 
 		elif len(pre[i]) == 1:
 
 			if pre[i] == [0]: # initial prediction
 				print("initial prediction")
 				data[i].append(viterbi_log_g(start_probability, transition_probability, emission_probability, gfa, i, True))
-
-				# cp = allpath[start_segment_id].copy()
-				# allpath[i].append(np.append(cp, np.array([i])))
-				
-				# allpath[i].append([i, allpath[start_segment_id]])
 				allpath[i].append([i])
 
 				print("initial prediction has ended")
@@ -290,13 +284,13 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 				# experimentally comment out
 
-				# for j in range(len(data[start_segment_id])):
+				for j in range(len(data[start_segment_id])):
 
-				# 	data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, emission_probability, gfa, i, False))
+					data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, emission_probability, gfa, i, False))
 
-				# for j in range(len(allpath[start_segment_id])):
+				for j in range(len(allpath[start_segment_id])):
 
-				# 	allpath[i].append([i, allpath[start_segment_id][j]])
+					allpath[i].append([i, allpath[start_segment_id][j]])
 					# pass
 
 				continue
@@ -314,15 +308,8 @@ def topoSortGenePred2(gfa, start_segment_id):
 					
 				if fol[i] == []:
 					# break
-					pass	
-		
-		# clear the memory
-		# if i > 1000 and i % 1000 == 0:
-		# 	data[:i].clear()
-		# 	allpath[:i].clear()
-		# 	pre[:i - 10].clear()
-		# 	fol[:i - 10].clear()
-
+					pass
+		print("\n")
 		topoSortGenePred2(gfa, i)
 
 def path2seq(path, segID_array):

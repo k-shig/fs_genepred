@@ -137,7 +137,9 @@ def viterbi_log(transition_probability, start_probability, emission_probability,
 
         ## 1216 kasahara
         # print(n)
-        Dlog_plus_trans_log_sqm = np.add(transition_probability_log.T, D_log_m[:, n-1])
+        # 1行ずつ関数にして　関数呼び出し　cProfileで時間を見る
+        #
+        Dlog_plus_trans_log_sqm = np.add(transition_probability_log.T, D_log_m[:, n-1]) # ここが本当に遅い？　遅いならCython使うとか。
         temp_sum_m = np.max(Dlog_plus_trans_log_sqm, axis = 1)
         E_m[:, n-1] = np.argmax(Dlog_plus_trans_log_sqm, axis = 1)
         D_log_m[:, n] = np.add(emission_probability_log[:, O[n]] , temp_sum_m)
@@ -253,27 +255,29 @@ def viterbi_log_g(start_probability, transition_probability, emission_probabilit
 
 # for time plotting
 
-state_num_list = [10, 50, 100, 500, 1000, 2000, 5000, 8000, 10000]
+state_num_list = [10, 50, 100, 500, 1000, 2000,3000, 4000, 5000, 8000, 10000]
 
-# state_num_list = [10, 50, 100]
+state_num_list = [3000, 4000, 5000, 8000, 10000]
+
+state_num_list = [100]
 
 
 
-# ave_time_list = []
-# for state_num in state_num_list:
-#     sum_time = 0.0
-#     for i in range(1):
-#         sum_time += main(state_num)
+ave_time_list = []
+for state_num in state_num_list:
+    sum_time = 0.0
+    for i in range(1):
+        sum_time += main(state_num)
     
-#     ave_time = sum_time / 1
-#     ave_time_list.append(ave_time)
-#     # print(state_num, "states :", ave_time, "s")
-#     print(ave_time)
+    ave_time = sum_time / 1
+    ave_time_list.append(ave_time)
+    # print(state_num, "states :", ave_time, "s")
+    print(ave_time)
 
-#     msg = str(state_num) + " states : " + str(ave_time) + " s\n"
+    msg = str(state_num) + " states : " + str(ave_time) + " s\n"
 
-#     if(state_num > 2000):
+    if(state_num > 2000):
 
-#         send_line_notify(msg)
+        send_line_notify(msg)
 
-# print(ave_time_list)
+print(ave_time_list)
