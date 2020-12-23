@@ -4,6 +4,9 @@
 import sys
 import random
 import time
+from scipy.sparse import csr_matrix
+import numba
+from numba import jit
 
 sys.setrecursionlimit(2000000)
 sys.settrace 
@@ -241,15 +244,16 @@ def topoSortGenePred(gfa, start_segment_id, hitotsumae, hitotsumae_cnt):
 		# print(data)
 		topoSortGenePred(gfa, i, hitotsumae, hitotsumae_cnt)
 
+# @jit()
 def topoSortGenePred2(gfa, start_segment_id):
 	
 	# print("\n")
 	print("start_segment_id", start_segment_id)
 		
-	print("fol,", fol[start_segment_id])
+	# print("fol,", fol[start_segment_id])
 	for i in fol[start_segment_id]:
 
-		print("startseg, i", start_segment_id, i)
+		# print("startseg, i", start_segment_id, i)
 
 		if len(pre[i]) == 0: 
 
@@ -261,6 +265,8 @@ def topoSortGenePred2(gfa, start_segment_id):
 				print("initial prediction")
 				data[i].append(viterbi_log_g(start_probability, transition_probability, emission_probability, gfa, i, True))
 				allpath[i].append([i])
+				# data[i] = np.append(data[i], viterbi_log_g(start_probability, transition_probability, emission_probability, gfa, i, True), axis = 0)
+				# allpath[i] = np.append(allpath[i], [i], axis = 0)
 
 				print("initial prediction has ended")
 				pass
@@ -269,10 +275,12 @@ def topoSortGenePred2(gfa, start_segment_id):
 				for j in range(len(data[pre[i][0]])):
 
 					data[i].append(viterbi_log_g(data[pre[i][0]][j], transition_probability, emission_probability, gfa, i, False))
+					# data[i] = np.append(data[i], viterbi_log_g(data[pre[i][0]][j], transition_probability, emission_probability, gfa, i, False), axis = 0)
 
 				for j in range(len(allpath[start_segment_id])):	
 
 					allpath[i].append([i, allpath[start_segment_id][j]])
+					# allpath[i] = np.append(allpath[i], [i, allpath[start_segment_id][j]], axis = 0)
 
 				pass
 		
@@ -284,14 +292,14 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 				# experimentally comment out
 
-				for j in range(len(data[start_segment_id])):
+				# for j in range(len(data[start_segment_id])):
 
-					data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, emission_probability, gfa, i, False))
+				# 	data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, emission_probability, gfa, i, False))
 
-				for j in range(len(allpath[start_segment_id])):
+				# for j in range(len(allpath[start_segment_id])):
 
-					allpath[i].append([i, allpath[start_segment_id][j]])
-					# pass
+				# 	allpath[i].append([i, allpath[start_segment_id][j]])
+				# 	# pass
 
 				continue
 				
@@ -300,18 +308,21 @@ def topoSortGenePred2(gfa, start_segment_id):
 				for j in range(len(data[start_segment_id])):
 
 					data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, emission_probability, gfa, i, False))
+					# data[i] = np.append(data[i], viterbi_log_g(data[start_segment_id][j], transition_probability, emission_probability, gfa, i, False), axis = 0)
 
 				for j in range(len(allpath[start_segment_id])):
 
 					allpath[i].append([i, allpath[start_segment_id][j]])
+					# allpath[i] = np.append(allpath[i], [i, allpath[start_segment_id][j]], axis = 0)
 
 					
 				if fol[i] == []:
 					# break
 					pass
-		print("\n")
+		# print(data)
 		topoSortGenePred2(gfa, i)
 
+# @jit(nopython=True, fastmath=True)
 def path2seq(path, segID_array):
 
 	if len(path) == 1:
@@ -334,12 +345,12 @@ def seq2traceback(seq):
 
 	return viterbi_log(transition_probability, start_probability, emission_probability, seq2num(seq)).astype(np.int32)
 
-N = int(sys.argv[2])
+state_num = int(sys.argv[3])
 
 # start_probability = np.array([0.91, 0.0, 0.0, 0.0, 0.03, 0.03, 0.03])
-start_probability = np.random.rand(N)
+start_probability = np.random.rand(state_num)
 start_probability = start_probability / np.sum(start_probability)
-start_probability = np.array(start_probability, order='F')
+# start_probability = np.array(start_probability, order='F')
 
 # transition_probability = np.array(
 # 	[[0.90, 0.10, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -350,12 +361,18 @@ start_probability = np.array(start_probability, order='F')
 # 	[0.0, 0.0, 0.0, 0.01, 0.0, 0.99, 0.0],
 # 	[0.0, 0.01, 0.0, 0.0, 0.0, 0.0, 0.99]]
 # )
-transition_probability = np.random.rand(N, N)
+transition_probability = np.random.rand(state_num, state_num)
 
-for i in range(N):
-	transition_probability[i] = transition_probability[i] / np.sum(transition_probability[i])
+for i in range(state_num):
+		for j in range(state_num):
+			if transition_probability[i][j] <= float(sys.argv[2]):
+				transition_probability[i][j] = 0
 
-transition_probability = np.array(transition_probability, order='C')
+		transition_probability[i] = transition_probability[i] / np.sum(transition_probability[i])
+
+transition_probability = np.array(transition_probability)
+transition_probability_CSR = csr_matrix(transition_probability)
+# transition_probability = np.array(transition_probability, order='C')
 
 # emission_probability = np.array(
 # 	[[0.10, 0.10, 0.40, 0.40],
@@ -367,11 +384,11 @@ transition_probability = np.array(transition_probability, order='C')
 # 	[0.10, 0.10, 0.40, 0.40]]
 # )
 
-emission_probability = np.random.rand(N, 4)
-for i in range(N):
+emission_probability = np.random.rand(state_num, 4)
+for i in range(state_num):
 	emission_probability[i] = emission_probability[i] / np.sum(emission_probability[i])
 
-emission_probability = np.array(emission_probability, order='F')
+# emission_probability = np.array(emission_probability, order='F')
 
 print("Data loading started.")
 
@@ -409,6 +426,15 @@ for link in gfa_file[1]:
 for i in range(len(pre)):
 	tmp.append(len(pre[i]))
 
+# pre = np.array(pre)
+# fol = np.array(fol)
+# data = np.array(data)
+# allpath = np.array(allpath)
+
+# print(pre)
+# print(fol)
+# print(data)
+# print(allpath)
 end = time.time()
 
 # print(pre[:1000])
@@ -450,7 +476,7 @@ print("All nodes searched. Time taken : " + str(end - start) + " s")
 
 start = time.time()
 
-# print(len(allpath[-1]))
+print(len(allpath[-1]))
 
 for k in range(len(allpath[-1])):
 	segID_array = []

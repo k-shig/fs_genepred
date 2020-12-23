@@ -217,40 +217,12 @@ def DP_calc_func(N, indices, indptr, transition_probability_log, D_log_csr, E_cs
 
 
 def viterbi_log_g(start_probability, transition_probability, emission_probability, gfa, segment_id, is_first):
-    # Define model parameters
 
-    # np_transition_probability
-    # A = np.array([[0.8, 0.1, 0.1], 
-    #               [0.2, 0.7, 0.1], 
-    #               [0.1, 0.3, 0.6]])
-    # transition_probability = np.array(
-    #     [[0.90, 0.10, 0.0, 0.0, 0.0, 0.0, 0.0],
-    #     [0.0, 0.0, 0.95, 0.0, 0.05, 0.0, 0.0],
-    #     [0.0, 0.0, 0.0, 0.95, 0.0, 0.05, 0.0],
-    #     [0.01, 0.94, 0.0, 0.0, 0.0, 0.0, 0.05],
-    #     [0.0, 0.0, 0.01, 0.0, 0.99, 0.0, 0.0],
-    #     [0.0, 0.0, 0.0, 0.01, 0.0, 0.99, 0.0],
-    #     [0.0, 0.01, 0.0, 0.0, 0.0, 0.0, 0.99]]
-    # )
+    transition_probability_CSR = csr_matrix(transition_probability.T)
 
-    # np_start_probability 
-    # C = np.array([0.6, 0.2, 0.2])
-    # C = np.array([0.91, 0.0, 0.0, 0.0, 0.03, 0.03, 0.03])
-
-    # np_emission_probability
-    # A0 T1 G2 C3
-    # B = np.array([[0.7, 0.0, 0.3], 
-    #               [0.1, 0.9, 0.0], 
-    #               [0.0, 0.2, 0.8]])
-    # emission_probability = np.array(
-    #     [[0.10, 0.10, 0.40, 0.40],
-    #     [0.30, 0.30, 0.20, 0.20],
-    #     [0.30, 0.30, 0.20, 0.20],
-    #     [0.30, 0.30, 0.20, 0.20],
-    #     [0.10, 0.10, 0.40, 0.40],
-    #     [0.10, 0.10, 0.40, 0.40],
-    #     [0.10, 0.10, 0.40, 0.40]]
-    # )
+    data_log = np.log(transition_probability_CSR.data)
+    indices = transition_probability_CSR.indices
+    indptr = transition_probability_CSR.indptr
 
     O = seq2num(gfa[segment_id][1])
 
@@ -272,36 +244,51 @@ def viterbi_log_g(start_probability, transition_probability, emission_probabilit
     # Initialize D matrix
     # D : viterbi DP matrix
 
-    D_log_m = np.zeros((I, N))
+    D_log_csr = np.zeros((I, N))
 
     if is_first == True:
-        D_log_m[:, 0] = start_probability_log + emission_probability_log[:, 0]
+        D_log_csr[:, 0] = start_probability_log + emission_probability_log[:, 0]
 
     else:
         # for i in range(I):
         #     temp_sum = transition_probability_log[:, i] + start_probability_log
         #     D_log[i, 0] = np.max(temp_sum) + emission_probability_log[i, O[0]]
         st_sqm = np.tile(start_probability_log, (I, 1)) + transition_probability_log.T
-        D_log_m[:, 0] = np.sort(st_sqm, axis = 1)[:, ::-1][:, 0]
+        D_log_csr[:, 0] = np.sort(st_sqm, axis = 1)[:, ::-1][:, 0]
 
 
     # Compute D in a nested loop
-    for n in range(1, N):
+    # for n in range(1, N):
         # for i in range(I):
         #     temp_sum = transition_probability_log[:, i] + D_log[:, n-1]
         #     D_log[i, n] = np.max(temp_sum) + emission_probability_log[i, O[n]]
 
-        Dlog_plus_Alog_sqm = np.add(transition_probability_log, D_log_m[:, n-1])
-        temp_sum_m = np.max(Dlog_plus_Alog_sqm, axis = 1)
-        D_log_m[:, n] = np.add(emission_probability_log[:, O[n]] , temp_sum_m)
+        # Dlog_plus_Alog_sqm = np.add(transition_probability_log, D_log_m[:, n-1])
+        # temp_sum_m = np.max(Dlog_plus_Alog_sqm, axis = 1)
+        # D_log_m[:, n] = np.add(emission_probability_log[:, O[n]] , temp_sum_m)
 
-    return D_log_m[:, -1]
+    DP_calc_func_g(N, indices, indptr, transition_probability_log, D_log_csr, emission_probability_log, O)
 
-def prac_CSR(transition_probability):
-    csr = csr_matrix(transition_probability)
-    print("data_len", len(csr.data))
-    print("indices", csr.indices)
-    print("indptr", csr.indptr)
+    return D_log_csr[:, -1]
+
+@jit(nopython=True, fastmath=True)
+def DP_calc_func_g(N, indices, indptr, transition_probability_log, D_log_csr, emission_probability_log, O):
+
+    for n in range(1, N):
+
+        for j in range(len(indptr) - 1):
+
+            D_log_n_max = 0 - math.inf
+            D_log_n_argmax = 0
+
+            for i in indices[ indptr[j] : indptr[j + 1] ]:
+
+                if transition_probability_log[i][j] + D_log_csr[i, n-1] >= D_log_n_max:
+                    D_log_n_max = transition_probability_log[i][j] + D_log_csr[i, n-1]
+            
+            # print("D_log_n_max", D_log_n_max)
+
+            D_log_csr[j, n] = np.add(emission_probability_log[j, O[n]], D_log_n_max)
 
 
 
@@ -309,19 +296,23 @@ def prac_CSR(transition_probability):
 
 # for time plotting
 
-state_num_list = [10, 50, 100, 500, 1000, 2000,3000, 4000, 5000, 8000, 10000]
+def time_plot(notify = False):
 
-state_num_list = [10, 50, 100, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000]
-print(state_num_list)
+    state_num_list = [10, 50, 100, 500, 1000, 2000,3000, 4000, 5000, 8000, 10000]
+
+    state_num_list = [10, 50, 100, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000]
+
+    state_num_list = [10]
+    print(state_num_list)
 
 
 
-ave_time_list = []
-for state_num in state_num_list:
-    sum_time = 0.0
-    for i in range(1):
-        sum_time += main(state_num)
-    
+    ave_time_list = []
+    for state_num in state_num_list:
+        sum_time = 0.0
+        for i in range(1):
+            sum_time += main(state_num)
+
     ave_time = sum_time / 1
     ave_time_list.append(ave_time)
     print(state_num, "states :", ave_time, "s")
@@ -329,8 +320,9 @@ for state_num in state_num_list:
 
     msg = str(state_num) + " states : " + str(ave_time) + " s\n"
 
-    if(state_num > 2):
-
+    if notify == True:
         send_line_notify(msg)
 
-print(ave_time_list)
+    print(ave_time_list)
+
+# time_plot()
