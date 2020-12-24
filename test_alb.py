@@ -30,7 +30,7 @@ def main(state_num):
         transition_probability[i] = transition_probability[i] / np.sum(transition_probability[i])
 
     transition_probability = np.array(transition_probability)
-    transition_probability_CSR = csr_matrix(transition_probability)
+    # transition_probability_CSR = csr_matrix(transition_probability)
 
     emission_probability = np.random.rand(state_num, 4)
     for i in range(state_num):
@@ -49,7 +49,7 @@ def main(state_num):
     # Apply Viterbi algorithm
     # S_opt, D, E = viterbi_log(transition_probability, start_probability, emission_probability, O)
     start = time.time()
-    S_opt = viterbi_log(transition_probability, start_probability, emission_probability, O)
+    S_opt = viterbi_log(data_log, transition_probability, indices, indptr, start_probability, emission_probability, O)
     # print('Observation sequence:   O = ', O)
     # print('Optimal state sequence: S = ', S_opt)
     end = time.time()
@@ -107,9 +107,10 @@ def viterbi(A, C, B, O):
     return S_opt, D, E
 
 
-def viterbi_log(transition_probability, start_probability, emission_probability, O):
+def viterbi_log(data_log, transition_probability, indices, indptr, start_probability, emission_probability, O):
 
-    I = transition_probability.shape[0]    # Number of states
+    # I = transition_probability.shape[0]    # Number of states
+    I = len(indptr) - 1
     N = len(O)  # Length of observation sequence
     # tiny = np.finfo(0.).tiny
     transition_probability_log = np.log(transition_probability)
@@ -120,11 +121,11 @@ def viterbi_log(transition_probability, start_probability, emission_probability,
 
     # print(transition_probability)
 
-    transition_probability_CSR = csr_matrix(transition_probability.T)
+    # transition_probability_CSR = csr_matrix(transition_probability.T)
 
-    data_log = np.log(transition_probability_CSR.data)
-    indices = transition_probability_CSR.indices
-    indptr = transition_probability_CSR.indptr
+    # data_log = np.log(transition_probability_CSR.data)
+    # indices = transition_probability_CSR.indices
+    # indptr = transition_probability_CSR.indptr
 
     # print(A_log)
 
@@ -216,21 +217,22 @@ def DP_calc_func(N, indices, indptr, transition_probability_log, D_log_csr, E_cs
             D_log_csr[j, n] = np.add(emission_probability_log[j, O[n]], D_log_n_max)
 
 
-def viterbi_log_g(start_probability, transition_probability, emission_probability, gfa, segment_id, is_first):
+def viterbi_log_g(start_probability, transition_probability, data_log, indices, indptr, emission_probability, gfa, segment_id, is_first):
 
-    transition_probability_CSR = csr_matrix(transition_probability.T)
+    # transition_probability_CSR = csr_matrix(transition_probability.T)
 
-    data_log = np.log(transition_probability_CSR.data)
-    indices = transition_probability_CSR.indices
-    indptr = transition_probability_CSR.indptr
+    # data_log = np.log(transition_probability_CSR.data)
+    # indices = transition_probability_CSR.indices
+    # indptr = transition_probability_CSR.indptr
 
     O = seq2num(gfa[segment_id][1])
 
-    I = transition_probability.shape[0]    # Number of states
+    # I = transition_probability.shape[0]    # Number of states
+    I = len(indptr) - 1
     N = len(O)  # Length of observation sequence
     # tiny = np.finfo(0.).tiny
     # transition_probability_log = np.log(transition_probability+ tiny) # log(0) = -infにしておく
-    transition_probability_log = np.log(transition_probability)
+    transition_probability_log = np.array(np.log(transition_probability), order = 'F')
 
     if is_first == True:
         # start_probability_log = np.log(start_probability+ tiny)
@@ -244,7 +246,7 @@ def viterbi_log_g(start_probability, transition_probability, emission_probabilit
     # Initialize D matrix
     # D : viterbi DP matrix
 
-    D_log_csr = np.zeros((I, N))
+    D_log_csr = np.array(np.zeros((I, N)), order = 'F')
 
     if is_first == True:
         D_log_csr[:, 0] = start_probability_log + emission_probability_log[:, 0]
@@ -253,8 +255,14 @@ def viterbi_log_g(start_probability, transition_probability, emission_probabilit
         # for i in range(I):
         #     temp_sum = transition_probability_log[:, i] + start_probability_log
         #     D_log[i, 0] = np.max(temp_sum) + emission_probability_log[i, O[0]]
-        st_sqm = np.tile(start_probability_log, (I, 1)) + transition_probability_log.T
-        D_log_csr[:, 0] = np.sort(st_sqm, axis = 1)[:, ::-1][:, 0]
+        # st_sqm = np.tile(start_probability_log, (I, 1)) + transition_probability_log.T
+        # D_log_csr[:, 0] = np.sort(st_sqm, axis = 1)[:, ::-1][:, 0]
+
+        st_sqm = np.add(transition_probability_log.T, start_probability)
+        D_log_csr[:, 0] = np.max(st_sqm, axis = 1)
+
+        # print("diff :", np.sort(st_sqm, axis = 1)[:, ::-1][:, 0] - np.max(st_sqm1, axis = 1))
+
 
 
     # Compute D in a nested loop
@@ -279,7 +287,6 @@ def DP_calc_func_g(N, indices, indptr, transition_probability_log, D_log_csr, em
         for j in range(len(indptr) - 1):
 
             D_log_n_max = 0 - math.inf
-            D_log_n_argmax = 0
 
             for i in indices[ indptr[j] : indptr[j + 1] ]:
 
