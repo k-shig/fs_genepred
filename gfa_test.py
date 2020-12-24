@@ -244,7 +244,7 @@ def topoSortGenePred(gfa, start_segment_id, hitotsumae, hitotsumae_cnt):
 		# print(data)
 		topoSortGenePred(gfa, i, hitotsumae, hitotsumae_cnt)
 
-@jit()
+# @jit('i4(i8[:], i8)', nopython=True, fastmath=True)
 def topoSortGenePred2(gfa, start_segment_id):
 	
 	# print("\n")
@@ -349,6 +349,8 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 		# print(len(data[pre[i][0]]))
 		topoSortGenePred2(gfa, i)
+
+	return 0
 
 # @jit(nopython=True, fastmath=True)
 def path2seq(path, segID_array):

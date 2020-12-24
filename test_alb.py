@@ -195,7 +195,7 @@ def viterbi_log(data_log, transition_probability, indices, indptr, start_probabi
     # return D_log[:, -1]
     return S_opt
 
-@jit(nopython=True, fastmath=True)
+@jit('i4(i8, i4[:], i4[:], f8[:,:], f8[:,:], i4[:,:], f8[:,:], i4[:])', nopython=True, fastmath=True)
 def DP_calc_func(N, indices, indptr, transition_probability_log, D_log_csr, E_csr, emission_probability_log, O):
 
     for n in range(1, N):
@@ -215,6 +215,8 @@ def DP_calc_func(N, indices, indptr, transition_probability_log, D_log_csr, E_cs
 
             E_csr[j, n - 1] = D_log_n_argmax
             D_log_csr[j, n] = np.add(emission_probability_log[j, O[n]], D_log_n_max)
+
+    return 0
 
 
 def viterbi_log_g(start_probability, transition_probability, data_log, indices, indptr, emission_probability, gfa, segment_id, is_first):
@@ -279,7 +281,8 @@ def viterbi_log_g(start_probability, transition_probability, data_log, indices, 
 
     return D_log_csr[:, -1]
 
-@jit(nopython=True, fastmath=True)
+# int64, array(int32, 1d, C), array(int32, 1d, C), array(float64, 2d, F), array(float64, 2d, F), array(float64, 2d, C), array(int32, 1d, C)
+@jit('i4(i8, i4[:], i4[:], f8[:,:], f8[:,:], f8[:,:], i4[:])', nopython=True, fastmath=True)
 def DP_calc_func_g(N, indices, indptr, transition_probability_log, D_log_csr, emission_probability_log, O):
 
     for n in range(1, N):
@@ -297,7 +300,7 @@ def DP_calc_func_g(N, indices, indptr, transition_probability_log, D_log_csr, em
 
             D_log_csr[j, n] = np.add(emission_probability_log[j, O[n]], D_log_n_max)
 
-
+    return 0
 
     # for 
 
