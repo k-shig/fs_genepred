@@ -30,7 +30,7 @@ def readGFAfile(filename):
 		# segment lines [seqID, seq]
 		if line_list[0] == 'S':
 			line_list[2].replace("N", "") # N -> 4, emissi = 0 
-			segment_list.append([int(line_list[1]), line_list[2]])
+			segment_list.append([int(line_list[1]), seq2num(line_list[2])])
 
 		# link lines [srcID, +/-, dstID, +/-, cigar ]
 		elif line_list[0] == 'L':
@@ -244,7 +244,7 @@ def topoSortGenePred(gfa, start_segment_id, hitotsumae, hitotsumae_cnt):
 		# print(data)
 		topoSortGenePred(gfa, i, hitotsumae, hitotsumae_cnt)
 
-# @jit('i4(i8[:], i8)', nopython=True, fastmath=True)
+# @profile
 def topoSortGenePred2(gfa, start_segment_id):
 	
 	# print("\n")
@@ -263,7 +263,7 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 			if pre[i] == [0]: # initial prediction
 				print("initial prediction")
-				data[i].append(viterbi_log_g(start_probability, transition_probability, data_log, indices, indptr, emission_probability, gfa, i, True))
+				data[i].append(viterbi_log_g(start_probability, transition_probability, data_log, indices, indptr, emission_probability, gfa[i][1], True))
 				allpath[i].append([i])
 				# data[i] = np.append(data[i], viterbi_log_g(start_probability, transition_probability, emission_probability, gfa, i, True), axis = 0)
 				# allpath[i] = np.append(allpath[i], [i], axis = 0)
@@ -272,8 +272,10 @@ def topoSortGenePred2(gfa, start_segment_id):
 				pass
 			
 			else:
+				
+				# merging compare prediction results　
 
-				# merging compare prediction results
+				# cosine similarity
 				# print("i", i)
 				# print("length of data[pre[i][0]] before :", len(data[pre[i][0]]))
 				# for j in range(1, len(data[pre[i][0]])):
@@ -284,14 +286,29 @@ def topoSortGenePred2(gfa, start_segment_id):
 				# 		del data[pre[i][0]][j]
 				# 		del allpath[start_segment_id][j]
 				# print("length of data[pre[i][0]] after :", len(data[pre[i][0]]))
-				
 
+				# argmax way
+				# print("length of data[pre[i][0]] before :", len(data[pre[i][0]]))
+
+				# for j in range(1, len(data[pre[i][0]])):
+
+				# 	print("base :", np.argmax(data[pre[i][0]][0]))
+
+				# 	if np.argmax(data[pre[i][0]][0]) == np.argmax(data[pre[i][0]][j]):
+						
+				# 		print("j :", np.argmax(data[pre[i][0]][j]))
+				# 		print("diff :", data[pre[i][0]][j] - data[pre[i][0]][0])
+
+				# 		del data[pre[i][0]][j]
+				# 		del allpath[start_segment_id][j]
+				
+				# print("length of data[pre[i][0]] after :", len(data[pre[i][0]]))
 
 
 				# pre[i][0] == start_segment_id
 				for j in range(len(data[pre[i][0]])):
 
-					data[i].append(viterbi_log_g(data[pre[i][0]][j], transition_probability, data_log, indices, indptr, emission_probability, gfa, i, False))
+					data[i].append(viterbi_log_g(data[pre[i][0]][j], transition_probability, data_log, indices, indptr, emission_probability, gfa[i][1], False))
 					# data[i] = np.append(data[i], viterbi_log_g(data[pre[i][0]][j], transition_probability, emission_probability, gfa, i, False), axis = 0)
 
 				# for j in data[start_segment_id]:
@@ -308,10 +325,25 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 			# tmp[i] = tmp[i] - 1
 
+			# cosine similarity
 			# for j in range(1, len(data[start_segment_id])):
 			# 	if cosSimilarity(data[start_segment_id][0], data[start_segment_id][j]) > 10.9999999999:
 			# 		del data[start_segment_id][j]
 			# 		del allpath[start_segment_id][j]
+
+			# argmax way
+			# print(i, pre[i][0])
+			# for j in range(1, len(data[pre[i][0]])):
+
+					# print("base :", np.argmax(data[pre[i][0]][0]))
+
+				# if np.argmax(data[pre[i][0]][0]) == np.argmax(data[pre[i][0]][j]):
+					
+				# 	# print("j :", np.argmax(data[pre[i][0]][j]))
+
+				# 	del data[pre[i][0]][j]
+				# 	del allpath[start_segment_id][j]
+
 
 			if tmp[i] > 1:
 				tmp[i] = tmp[i] - 1
@@ -321,12 +353,12 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 				# for j in range(len(data[start_segment_id])):
 
-				# 	data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, data_log, indices, indptr, emission_probability, gfa, i, False))
+				# 	data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, data_log, indices, indptr, emission_probability, gfa[i][1], False))
 
 				# for j in range(len(allpath[start_segment_id])):
 
 				# 	allpath[i].append([i, allpath[start_segment_id][j]])
-					# pass
+				# 	pass
 
 				continue
 				
@@ -334,7 +366,7 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 				for j in range(len(data[start_segment_id])):
 					
-					data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, data_log, indices, indptr, emission_probability, gfa, i, False))
+					data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, data_log, indices, indptr, emission_probability, gfa[i][1], False))
 					# data[i] = np.append(data[i], viterbi_log_g(data[start_segment_id][j], transition_probability, emission_probability, gfa, i, False), axis = 0)
 
 				for j in range(len(allpath[start_segment_id])):
@@ -364,18 +396,19 @@ def path2seq(path, segID_array):
 		# print(path[0])
 		segID_array.append(path[0])
 
-	seq = ""
+	num_seq = []
 
 	for i in range(len(segID_array)):
-		seq += gfa[segID_array[i]][1]
+		num_seq.extend(gfa[segID_array[i]][1])
 
 	# print(len(seq))
-	return seq
+	return np.array(num_seq)
 
 
-def seq2traceback(seq):
-
-	return viterbi_log(data_log, transition_probability, indices, indptr, start_probability, emission_probability, seq2num(seq)).astype(np.int32)
+def seq2traceback(num_seq):
+	# print(num_seq)
+	# print(type(num_seq))
+	return viterbi_log(data_log, transition_probability, indices, indptr, start_probability, emission_probability, num_seq)
 
 # @jit(nopython=True, fastmath=True)
 def cosSimilarity(A, B):
@@ -527,20 +560,20 @@ print("All nodes searched. Time taken : " + str(end - start) + " s")
 # allpath = np.array(allpath)
 # data = np.array(data)
 
-start = time.time()
+# start = time.time()
 
-print(len(allpath[-1]))
+print("Number of paths :", len(allpath[-1]))
 
-for k in range(len(allpath[-1])):
-	segID_array = []
-	# print("path : " + str(allpath[-1][k]))
-	# print(path2seq(allpath[-1][k], segID_array))
-	# print(data[-1][k])
-	t = seq2traceback(path2seq(allpath[-1][k], segID_array))
-	print(len(t))
-	print(t)
-	# print("\n")
+# for k in range(len(allpath[-1])):
+# 	segID_array = []
+# 	# print("path : " + str(allpath[-1][k]))
+# 	# print(path2seq(allpath[-1][k], segID_array))
+# 	# print(data[-1][k])
+# 	t = seq2traceback(path2seq(allpath[-1][k], segID_array))
+# 	print(len(t))
+# 	print(t)
+# 	# print("\n")
 
-end = time.time()
+# end = time.time()
 
-print("Prediction time : " + str(end - start) + " s")
+# print("Prediction time : " + str(end - start) + " s")
