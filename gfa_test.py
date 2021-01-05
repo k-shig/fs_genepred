@@ -263,7 +263,17 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 			if pre[i] == [0]: # initial prediction
 				print("initial prediction")
-				data[i].append(viterbi_log_g(start_probability, transition_probability, data_log, indices, indptr, emission_probability, gfa[i][1], True))
+
+				# N - dimensional Markov Chain
+				# s = gfa[allpath[start_segment_id][j][0]][1]
+				# if len(s) < N:
+				# 	s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
+					
+				# 	if len(s) < N:
+				# 		s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
+				# 		print(len(s))
+				
+				data[i].append(viterbi_log_g(start_probability, data_log, indices, indptr, emission_probability, gfa[i][1], True))
 				allpath[i].append([i])
 				# data[i] = np.append(data[i], viterbi_log_g(start_probability, transition_probability, emission_probability, gfa, i, True), axis = 0)
 				# allpath[i] = np.append(allpath[i], [i], axis = 0)
@@ -274,18 +284,6 @@ def topoSortGenePred2(gfa, start_segment_id):
 			else:
 				
 				# merging compare prediction results　
-
-				# cosine similarity
-				# print("i", i)
-				# print("length of data[pre[i][0]] before :", len(data[pre[i][0]]))
-				# for j in range(1, len(data[pre[i][0]])):
-				# 	# print(data[pre[i][0]][j])
-				# 	print("cosSimilarity :", cosSimilarity(data[pre[i][0]][0], data[pre[i][0]][j]))
-				# 	if cosSimilarity(data[pre[i][0]][0], data[pre[i][0]][j]) > 0.999999:
-				# 		print("delete :", data[pre[i][0]][j])
-				# 		del data[pre[i][0]][j]
-				# 		del allpath[start_segment_id][j]
-				# print("length of data[pre[i][0]] after :", len(data[pre[i][0]]))
 
 				# argmax way
 				# print("length of data[pre[i][0]] before :", len(data[pre[i][0]]))
@@ -308,7 +306,22 @@ def topoSortGenePred2(gfa, start_segment_id):
 				# pre[i][0] == start_segment_id
 				for j in range(len(data[pre[i][0]])):
 
-					data[i].append(viterbi_log_g(data[pre[i][0]][j], transition_probability, data_log, indices, indptr, emission_probability, gfa[i][1], False))
+					# N - dimensional Markov Chain
+					s = gfa[allpath[start_segment_id][j][0]][1]
+					if len(s) < N:
+						s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
+						
+						if len(s) < N:
+							s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
+
+							if len(s) < N:
+								s = np.append(s, gfa[allpath[start_segment_id][j][1][1][1][0]][1])
+								print(len(s))
+					
+					print("k-mer integer :", k_mer_2_k_mer_integer(s[-N:]))
+
+
+					data[i].append(viterbi_log_g(data[pre[i][0]][j], data_log, indices, indptr, emission_probability, gfa[i][1], False))
 					# data[i] = np.append(data[i], viterbi_log_g(data[pre[i][0]][j], transition_probability, emission_probability, gfa, i, False), axis = 0)
 
 				# for j in data[start_segment_id]:
@@ -325,24 +338,18 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 			# tmp[i] = tmp[i] - 1
 
-			# cosine similarity
-			# for j in range(1, len(data[start_segment_id])):
-			# 	if cosSimilarity(data[start_segment_id][0], data[start_segment_id][j]) > 10.9999999999:
-			# 		del data[start_segment_id][j]
-			# 		del allpath[start_segment_id][j]
-
 			# argmax way
 			# print(i, pre[i][0])
 			# for j in range(1, len(data[pre[i][0]])):
 
-					# print("base :", np.argmax(data[pre[i][0]][0]))
+			# 	print("base :", np.argmax(data[pre[i][0]][0]))
 
-				# if np.argmax(data[pre[i][0]][0]) == np.argmax(data[pre[i][0]][j]):
+			# 	if np.argmax(data[pre[i][0]][0]) == np.argmax(data[pre[i][0]][j]):
 					
-				# 	# print("j :", np.argmax(data[pre[i][0]][j]))
+			# 		# print("j :", np.argmax(data[pre[i][0]][j]))
 
-				# 	del data[pre[i][0]][j]
-				# 	del allpath[start_segment_id][j]
+			# 		del data[pre[i][0]][j]
+			# 		del allpath[start_segment_id][j]
 
 
 			if tmp[i] > 1:
@@ -353,7 +360,16 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 				# for j in range(len(data[start_segment_id])):
 
-				# 	data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, data_log, indices, indptr, emission_probability, gfa[i][1], False))
+				# 	# N - dimensional Markov Chain
+				# 	s = gfa[allpath[start_segment_id][j][0]][1]
+				# 	if len(s) < N:
+				# 		s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
+						
+				# 		if len(s) < N:
+				# 			s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
+				# 			print(len(s))
+
+				# 	data[i].append(viterbi_log_g(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], False))
 
 				# for j in range(len(allpath[start_segment_id])):
 
@@ -365,8 +381,22 @@ def topoSortGenePred2(gfa, start_segment_id):
 			elif tmp[i] == 1:
 
 				for j in range(len(data[start_segment_id])):
+
+					# N - dimensional Markov Chain
+					s = gfa[allpath[start_segment_id][j][0]][1]
+					if len(s) < N:
+						s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
+						
+						if len(s) < N:
+							s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
+
+							if len(s) < N:
+								s = np.append(s, gfa[allpath[start_segment_id][j][1][1][1][0]][1])
+								print(len(s))
+
+					print("k-mer integer :", k_mer_2_k_mer_integer(s[-N:]))
 					
-					data[i].append(viterbi_log_g(data[start_segment_id][j], transition_probability, data_log, indices, indptr, emission_probability, gfa[i][1], False))
+					data[i].append(viterbi_log_g(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], False))
 					# data[i] = np.append(data[i], viterbi_log_g(data[start_segment_id][j], transition_probability, emission_probability, gfa, i, False), axis = 0)
 
 				for j in range(len(allpath[start_segment_id])):
@@ -424,9 +454,29 @@ def diffSimilarity(A, B):
 	print(np.linalg.norm(A-B))
 	return np.linalg.norm(A-B)
 
-
+@jit('i4(i4[:])', nopython = True, fastmath=True, cache=True)
+def k_mer_2_k_mer_integer(k_mer_num_array):
+	retval = 0
+	for c in k_mer_num_array:
+		retval *= 4
+        # if c == 'A' or c == 'a':
+		if c == 0:
+			retval += 0
+        # elif c == 'C' or c == 'c':
+		elif c == 1:
+			retval += 1
+        # elif c == 'G' or c == 'g':
+		elif c == 2:
+			retval += 2
+        # elif c == 'T' or c == 't':
+		elif c == 3:
+			retval += 3
+	return retval
 
 state_num = int(sys.argv[3])
+
+# dimension of the HMM
+N = 5
 
 # start_probability = np.array([0.91, 0.0, 0.0, 0.0, 0.03, 0.03, 0.03])
 start_probability = np.random.rand(state_num)
