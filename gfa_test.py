@@ -473,6 +473,25 @@ def k_mer_2_k_mer_integer(k_mer_num_array):
 			retval += 3
 	return retval
 
+def numseq2string(numseq):
+
+	stri = ""
+
+	for n in numseq:
+
+		if n == 0:
+			stri += "A"
+		elif n == 1:
+			stri += "C"
+		elif n == 2:
+			stri += "G"
+		elif n == 3:
+			stri += "T"
+	
+	# print(stri)
+	return stri
+
+
 state_num = int(sys.argv[3])
 
 # dimension of the HMM
@@ -613,17 +632,19 @@ print("All nodes searched. Time taken : " + str(end - start) + " s")
 # start = time.time()
 
 print("Number of paths :", len(allpath[-1]))
+gene_name = sys.argv[1].split('/')[1][:-4]
+print("Gene name", gene_name)
+f = open("SGFfasta/SGFout_" + gene_name + ".fa", "w")
 
-# for k in range(len(allpath[-1])):
-# 	segID_array = []
-# 	# print("path : " + str(allpath[-1][k]))
-# 	# print(path2seq(allpath[-1][k], segID_array))
-# 	# print(data[-1][k])
-# 	t = seq2traceback(path2seq(allpath[-1][k], segID_array))
-# 	print(len(t))
-# 	print(t)
-# 	# print("\n")
+for k in range(len(allpath[-1])):
+	segID_array = []
+	stri = ">" + gene_name + "　#" + str(k)
+	f.write(stri + "\n")
+	f.flush()
+	f.write(numseq2string(path2seq(allpath[-1][k], segID_array)))
+	f.flush()
 
+f.close()
 # end = time.time()
 
 # print("Prediction time : " + str(end - start) + " s")
