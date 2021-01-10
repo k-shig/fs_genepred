@@ -268,9 +268,15 @@ def viterbi_log_g(start_probability, data_log, indices, indptr, emission_probabi
     # D : viterbi DP matrix
 
     D_log_csr = np.array(np.zeros((state_num, len_seq)), order = 'F')
+    # D_log_csr_a = np.array(np.zeros((state_num, len_seq)), order = 'F')
 
     if is_first == True:
-        D_log_csr[:, 0] = start_probability_log + emission_probability_log[:, 0]
+        # D_log_csr_a[:, 0] = start_probability_log + emission_probability_log[:, 0]
+        
+        for j in range(len(indptr) - 1):
+            D_log_csr[j, 0] = start_probability_log[j] + emission_probability_log[j, 0]
+        
+        # print(D_log_csr_a[:, 0] - D_log_csr[:, 0])
 
     else:
         # for i in range(I):
@@ -314,8 +320,7 @@ def viterbi_log_g(start_probability, data_log, indices, indptr, emission_probabi
 
     return D_log_csr[:, -1]
 
-# int64, array(int32, 1d, C), array(int32, 1d, C), array(float64, 2d, F), array(float64, 2d, F), array(float64, 2d, C), array(int32, 1d, C)
-# @profile
+
 @jit('i4(i8, f8[:], i4[:], i4[:], f8[:,:], f8[:,:], i4[:])', nopython = True, fastmath=True, cache=True)
 def DP_calc_func_g(len_seq, data_log, indices, indptr, D_log_csr, emission_probability_log, num_seq):
 
