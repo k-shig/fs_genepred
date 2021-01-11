@@ -14,7 +14,7 @@ sys.settrace
 
 from test_wiki import *
 from genepred import *
-from test_alb import viterbi_log, viterbi_log_g, seq2num
+from test_alb import *
 
 # return the list contains [[segment_list], [link_list]]
 def readGFAfile(filename):
@@ -254,7 +254,7 @@ def topoSortGenePred2(gfa, start_segment_id):
 	# print("fol,", fol[start_segment_id])
 	for i in fol[start_segment_id]:
 
-		# print("startseg, i", start_segment_id, i)
+		# print("NOW_seg", i)
 
 		if len(pre[i]) == 0: 
 
@@ -263,7 +263,7 @@ def topoSortGenePred2(gfa, start_segment_id):
 		elif len(pre[i]) == 1:
 
 			if pre[i] == [0]: # initial prediction
-				print("initial prediction")
+				# print("initial prediction")
 
 				# N - dimensional Markov Chain
 				# s = gfa[allpath[start_segment_id][j][0]][1]
@@ -273,38 +273,20 @@ def topoSortGenePred2(gfa, start_segment_id):
 				# 	if len(s) < N:
 				# 		s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
 				# 		print(len(s))
-				
-				data[i].append(viterbi_log_g(start_probability, data_log, indices, indptr, emission_probability, gfa[i][1], True))
+				a = np.zeros((state_num, len(gfa[i][1])), order = 'F')
+				data[i].append(viterbi_log_g_first_seg(start_probability, data_log, indices, indptr, emission_probability, gfa[i][1], state_num, len(gfa[i][1]), len(indptr), np.log(start_probability), a))
+				# print("A", a)
 				allpath[i].append([i])
 				# data[i] = np.append(data[i], viterbi_log_g(start_probability, transition_probability, emission_probability, gfa, i, True), axis = 0)
 				# allpath[i] = np.append(allpath[i], [i], axis = 0)
 
-				print("initial prediction has ended")
-				pass
+				# print("initial prediction has ended")
+				# pass
+				# print(data)
 			
 			else:
-				
-				# merging compare prediction results　
 
-				# argmax way
-				# print("length of data[pre[i][0]] before :", len(data[pre[i][0]]))
-
-				# for j in range(1, len(data[pre[i][0]])):
-
-				# 	print("base :", np.argmax(data[pre[i][0]][0]))
-
-				# 	if np.argmax(data[pre[i][0]][0]) == np.argmax(data[pre[i][0]][j]):
-						
-				# 		print("j :", np.argmax(data[pre[i][0]][j]))
-				# 		print("diff :", data[pre[i][0]][j] - data[pre[i][0]][0])
-
-				# 		del data[pre[i][0]][j]
-				# 		del allpath[start_segment_id][j]
-				
-				# print("length of data[pre[i][0]] after :", len(data[pre[i][0]]))
-
-
-				# pre[i][0] == start_segment_id
+				# print(len(data[pre[i][0]]))
 				for j in range(len(data[pre[i][0]])):
 
 					# N - dimensional Markov Chain
@@ -321,8 +303,10 @@ def topoSortGenePred2(gfa, start_segment_id):
 					
 					# print("k-mer integer :", k_mer_2_k_mer_integer(s[-N:]))
 
+					# print("datapre", data[pre[i][0]][j])
 
-					data[i].append(viterbi_log_g(data[pre[i][0]][j], data_log, indices, indptr, emission_probability, gfa[i][1], False))
+					data[i].append(viterbi_log_g_not_first_seg(data[pre[i][0]][j], data_log, indices, indptr, emission_probability, gfa[i][1], state_num, len(gfa[i][1]), len(indptr), start_probability, np.zeros((state_num, len(gfa[i][1])), order = 'F')))
+					# print("is appended to data_", i)
 					# data[i] = np.append(data[i], viterbi_log_g(data[pre[i][0]][j], transition_probability, emission_probability, gfa, i, False), axis = 0)
 
 				# for j in data[start_segment_id]:
@@ -335,23 +319,8 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 				pass
 		
-		elif len(pre[i]) >= 2: # merging node
-
-			# tmp[i] = tmp[i] - 1
-
-			# argmax way
-			# print(i, pre[i][0])
-			# for j in range(1, len(data[pre[i][0]])):
-
-			# 	print("base :", np.argmax(data[pre[i][0]][0]))
-
-			# 	if np.argmax(data[pre[i][0]][0]) == np.argmax(data[pre[i][0]][j]):
-					
-			# 		# print("j :", np.argmax(data[pre[i][0]][j]))
-
-			# 		del data[pre[i][0]][j]
-			# 		del allpath[start_segment_id][j]
-
+		elif len(pre[i]) >= 2:
+			# print("node ", i, "is merging node.")
 
 			if tmp[i] > 1:
 				tmp[i] = tmp[i] - 1
@@ -359,23 +328,27 @@ def topoSortGenePred2(gfa, start_segment_id):
 
 				# experimentally comment out
 
-				# for j in range(len(data[start_segment_id])):
+				for j in range(len(data[start_segment_id])):
 
-				# 	# N - dimensional Markov Chain
-				# 	s = gfa[allpath[start_segment_id][j][0]][1]
-				# 	if len(s) < N:
-				# 		s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
+					# N - dimensional Markov Chain
+					s = gfa[allpath[start_segment_id][j][0]][1]
+					if len(s) < N:
+						s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
 						
-				# 		if len(s) < N:
-				# 			s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
-				# 			print(len(s))
+						if len(s) < N:
+							s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
 
-				# 	data[i].append(viterbi_log_g(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], False))
+							if len(s) < N:
+								s = np.append(s, gfa[allpath[start_segment_id][j][1][1][1][0]][1])
 
-				# for j in range(len(allpath[start_segment_id])):
+					# data[i].append(viterbi_log_g(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], False))
+					# print("datapre", data[start_segment_id][j])
+					data[i].append(viterbi_log_g_not_first_seg(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], state_num, len(gfa[i][1]), len(indptr), start_probability, np.zeros((state_num, len(gfa[i][1])), order = 'F')))
+					# print("is appended to data_", i)
+				for j in range(len(allpath[start_segment_id])):
 
-				# 	allpath[i].append([i, allpath[start_segment_id][j]])
-				# 	pass
+					allpath[i].append([i, allpath[start_segment_id][j]])
+					pass
 
 				continue
 				
@@ -396,8 +369,9 @@ def topoSortGenePred2(gfa, start_segment_id):
 								# print(len(s))
 
 					# print("k-mer integer :", k_mer_2_k_mer_integer(s[-N:]))
-					
-					data[i].append(viterbi_log_g(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], False))
+					# print("datapre", data[start_segment_id][j])
+					data[i].append(viterbi_log_g_not_first_seg(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], state_num, len(gfa[i][1]), len(indptr), start_probability, np.zeros((state_num, len(gfa[i][1])), order = 'F')))
+					# print("is appended to data_", i)
 					# data[i] = np.append(data[i], viterbi_log_g(data[start_segment_id][j], transition_probability, emission_probability, gfa, i, False), axis = 0)
 
 				for j in range(len(allpath[start_segment_id])):
@@ -410,7 +384,7 @@ def topoSortGenePred2(gfa, start_segment_id):
 					# break
 					pass
 
-		# print(len(data[pre[i][0]]))
+		# print("data", i , data[i])
 		topoSortGenePred2(gfa, i)
 
 	return 0
@@ -563,11 +537,11 @@ start_probability = start_probability / np.sum(start_probability)
 transition_probability = np.random.rand(state_num, state_num)
 
 for i in range(state_num):
-		for j in range(state_num):
-			if transition_probability[i][j] <= float(sys.argv[2]):
-				transition_probability[i][j] = 0
+	for j in range(state_num):
+		if transition_probability[i][j] <= float(sys.argv[2]):
+			transition_probability[i][j] = 0
 
-		transition_probability[i] = transition_probability[i] / np.sum(transition_probability[i])
+	transition_probability[i] = transition_probability[i] / np.sum(transition_probability[i])
 
 transition_probability_CSR = csr_matrix(transition_probability.T)
 
@@ -633,10 +607,10 @@ start = time.time()
 print("Execution started.")
 
 # with DP
-# topoSortGenePred2(gfa, 0)
+topoSortGenePred2(gfa, 0)
 
 # without DP ( only the paths )
-topoSortGenePred2(gfa, 0)
+# topoSortGenePred3(gfa, 0)
 
 end = time.time()
 
@@ -648,28 +622,31 @@ print("All nodes searched. Time taken : " + str(end - start) + " s")
 # start = time.time()
 
 print("Number of paths :", len(allpath[-1]))
-gene_name = sys.argv[1].split('/')[1][:-4]
+# gene_name = sys.argv[1].split('/')[1][:-4]
 
 # g = open("branchnum.txt", "a")
 # g.write( gene_name + " " + str(mul) + "\n")
 # g.flush()
 
-f = open("SGFfasta/SGFout_" + gene_name + ".fa", "w")
+# f = open("SGFfasta/SGFout_" + gene_name + ".fa", "w")
+f = open("gomi.fa", "w")
 
 # write sequences to SGFout_(gene_name)_.fa
 
 start = time.time()
 
-# for k in range(len(allpath[-1])):
-for k in range(1):
+for k in range(len(allpath[-1])):
+# for k in range(10):
 	segID_array = []
-	stri = ">" + gene_name + "　#" + str(k)
+	# stri = ">" + gene_name + "　#" + str(k)
+	stri = "> gomi #" + str(k)
 	f.write(stri + "\n")
 	f.flush()
 	f.write(numseq2string(path2seq(allpath[-1][k], segID_array)))
 	f.flush()
 	f.write("\n")
 	f.flush()
+	print(data[-1][k])
 
 f.close()
 

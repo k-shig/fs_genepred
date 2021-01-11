@@ -1,0 +1,20 @@
+# argmax way
+			print("length of data[", start_segment_id, "] before :", len(data[start_segment_id]))
+			delete_array = []
+
+			for j in range(1, len(data[start_segment_id])):
+				print("base :", data[start_segment_id][0][:3])
+
+				if np.argmax(data[start_segment_id][0]) == np.argmax(data[start_segment_id][j]):
+					
+					print(j, "th :", data[start_segment_id][j][:3])
+					# print("DP iff :", data[pre[i][0]][j] - data[pre[i][0]][0])
+
+					delete_array.append(j)
+
+			cnt = 0
+			for j in delete_array:
+
+				del data[start_segment_id][j - cnt]
+				del allpath[start_segment_id][j - cnt]
+				cnt = cnt + 1
