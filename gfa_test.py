@@ -285,106 +285,170 @@ def topoSortGenePred2(gfa, start_segment_id):
 				# print(data)
 			
 			else:
+				
+				# argmax way
+				# print("length of data[", start_segment_id, "] before :", len(data[start_segment_id]))
+
+				# argmax_array = [np.argmax(data[start_segment_id][0])]
+				# delete_array = []
+
+				# print("base argmax:", np.argmax(data[start_segment_id][0]))
+
+				# for j in range(1, len(data[start_segment_id])):
+
+				# 	if np.argmax(data[start_segment_id][j]) in argmax_array:
+						
+				# 		# print(j, "th argmax :", np.argmax(data[start_segment_id][j]))
+				# 		# print("DP diff :", data[pre[i][0]][j] - data[pre[i][0]][0])
+
+				# 		delete_array.append(j)
+				# 	else:
+
+				# 		print("different ARGMAX!", np.argmax(data[start_segment_id][j]))
+				# 		argmax_array.append(np.argmax(data[start_segment_id][j]))
+
+				# cnt = 0
+				# for j in delete_array:
+
+				# 	del data[start_segment_id][j - cnt]
+				# 	del allpath[start_segment_id][j - cnt]
+				# 	cnt = cnt + 1
 
 				# print(len(data[pre[i][0]]))
 				for j in range(len(data[pre[i][0]])):
 
-					# N - dimensional Markov Chain
-					s = gfa[allpath[start_segment_id][j][0]][1]
-					if len(s) < N:
-						s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
+				# 	# N - dimensional Markov Chain
+				# 	s = gfa[allpath[start_segment_id][j][0]][1]
+				# 	if len(s) < N:
+				# 		s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
 						
-						if len(s) < N:
-							s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
+				# 		if len(s) < N:
+				# 			s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
 
-							if len(s) < N:
-								s = np.append(s, gfa[allpath[start_segment_id][j][1][1][1][0]][1])
+				# 			if len(s) < N:
+				# 				s = np.append(s, gfa[allpath[start_segment_id][j][1][1][1][0]][1])
 								# print(len(s))
-					
+
 					# print("k-mer integer :", k_mer_2_k_mer_integer(s[-N:]))
 
-					# print("datapre", data[pre[i][0]][j])
-
 					data[i].append(viterbi_log_g_not_first_seg(data[pre[i][0]][j], data_log, indices, indptr, emission_probability, gfa[i][1], state_num, len(gfa[i][1]), len(indptr), start_probability, np.zeros((state_num, len(gfa[i][1])), order = 'F')))
-					# print("is appended to data_", i)
-					# data[i] = np.append(data[i], viterbi_log_g(data[pre[i][0]][j], transition_probability, emission_probability, gfa, i, False), axis = 0)
 
-				# for j in data[start_segment_id]:
-				# 	data[i].append(viterbi_log_g(data[j][0], transition_probability, data_log, indices, indptr, emission_probability, gfa, i, False))
 
 				for j in range(len(allpath[start_segment_id])):	
 
 					allpath[i].append([i, allpath[start_segment_id][j]])
-					# allpath[i] = np.append(allpath[i], [i, allpath[start_segment_id][j]], axis = 0)
 
 				pass
 		
 		elif len(pre[i]) >= 2:
-			# print("node ", i, "is merging node.")
 
 			if tmp[i] > 1:
 				tmp[i] = tmp[i] - 1
 
 
+				# print("length of data[", start_segment_id, "] before :", len(data[start_segment_id]))
+
+				# argmax_array = [np.argmax(data[start_segment_id][0])]
+				# delete_array = []
+
+				# # print("base argmax:", np.argmax(data[start_segment_id][0]))
+
+				# for j in range(1, len(data[start_segment_id])):
+
+				# 	if np.argmax(data[start_segment_id][j]) in argmax_array:
+						
+				# 		# print(j, "th argmax :", np.argmax(data[start_segment_id][j]))
+				# 		# print("DP diff :", data[pre[i][0]][j] - data[pre[i][0]][0])
+
+				# 		delete_array.append(j)
+				# 	else:
+
+				# 		# print("different ARGMAX!", np.argmax(data[start_segment_id][j]))
+				# 		argmax_array.append(np.argmax(data[start_segment_id][j]))
+
+				# cnt = 0
+				# for j in delete_array:
+
+				# 	del data[start_segment_id][j - cnt]
+				# 	del allpath[start_segment_id][j - cnt]
+				# 	cnt = cnt + 1
+
 				# experimentally comment out
 
-				for j in range(len(data[start_segment_id])):
+				# for j in range(len(data[start_segment_id])):
 
-					# N - dimensional Markov Chain
-					s = gfa[allpath[start_segment_id][j][0]][1]
-					if len(s) < N:
-						s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
+				# 	# N - dimensional Markov Chain
+				# 	s = gfa[allpath[start_segment_id][j][0]][1]
+				# 	if len(s) < N:
+				# 		s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
 						
-						if len(s) < N:
-							s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
+				# 		if len(s) < N:
+				# 			s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
 
-							if len(s) < N:
-								s = np.append(s, gfa[allpath[start_segment_id][j][1][1][1][0]][1])
+				# 			if len(s) < N:
+				# 				s = np.append(s, gfa[allpath[start_segment_id][j][1][1][1][0]][1])
 
-					# data[i].append(viterbi_log_g(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], False))
-					# print("datapre", data[start_segment_id][j])
-					data[i].append(viterbi_log_g_not_first_seg(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], state_num, len(gfa[i][1]), len(indptr), start_probability, np.zeros((state_num, len(gfa[i][1])), order = 'F')))
-					# print("is appended to data_", i)
-				for j in range(len(allpath[start_segment_id])):
+				# 	data[i].append(viterbi_log_g_not_first_seg(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], state_num, len(gfa[i][1]), len(indptr), start_probability, np.zeros((state_num, len(gfa[i][1])), order = 'F')))
 
-					allpath[i].append([i, allpath[start_segment_id][j]])
-					pass
+				# for j in range(len(allpath[start_segment_id])):
+
+				# 	allpath[i].append([i, allpath[start_segment_id][j]])
+				# 	pass
 
 				continue
 				
 			elif tmp[i] == 1:
 
+				# print("length of data[", start_segment_id, "] before :", len(data[start_segment_id]))
+
+				# argmax_array = [np.argmax(data[start_segment_id][0])]
+				# delete_array = []
+
+				# # print("base argmax:", np.argmax(data[start_segment_id][0]))
+
+				# for j in range(1, len(data[start_segment_id])):
+
+				# 	if np.argmax(data[start_segment_id][j]) in argmax_array:
+						
+				# 		# print(j, "th argmax :", np.argmax(data[start_segment_id][j]))
+				# 		# print("DP diff :", data[pre[i][0]][j] - data[pre[i][0]][0])
+
+				# 		delete_array.append(j)
+				# 	else:
+
+				# 		# print("different ARGMAX!", np.argmax(data[start_segment_id][j]))
+				# 		argmax_array.append(np.argmax(data[start_segment_id][j]))
+
+				# cnt = 0
+				# for j in delete_array:
+
+				# 	del data[start_segment_id][j - cnt]
+				# 	del allpath[start_segment_id][j - cnt]
+				# 	cnt = cnt + 1
+
 				for j in range(len(data[start_segment_id])):
 
 					# N - dimensional Markov Chain
-					s = gfa[allpath[start_segment_id][j][0]][1]
-					if len(s) < N:
-						s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
+					# s = gfa[allpath[start_segment_id][j][0]][1]
+					# if len(s) < N:
+					# 	s = np.append(s, gfa[allpath[start_segment_id][j][1][0]][1])
 						
-						if len(s) < N:
-							s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
+					# 	if len(s) < N:
+					# 		s = np.append(s, gfa[allpath[start_segment_id][j][1][1][0]][1])
 
-							if len(s) < N:
-								s = np.append(s, gfa[allpath[start_segment_id][j][1][1][1][0]][1])
-								# print(len(s))
+					# 		if len(s) < N:
+					# 			s = np.append(s, gfa[allpath[start_segment_id][j][1][1][1][0]][1])
 
-					# print("k-mer integer :", k_mer_2_k_mer_integer(s[-N:]))
-					# print("datapre", data[start_segment_id][j])
 					data[i].append(viterbi_log_g_not_first_seg(data[start_segment_id][j], data_log, indices, indptr, emission_probability, gfa[i][1], state_num, len(gfa[i][1]), len(indptr), start_probability, np.zeros((state_num, len(gfa[i][1])), order = 'F')))
-					# print("is appended to data_", i)
-					# data[i] = np.append(data[i], viterbi_log_g(data[start_segment_id][j], transition_probability, emission_probability, gfa, i, False), axis = 0)
-
+					
 				for j in range(len(allpath[start_segment_id])):
 
 					allpath[i].append([i, allpath[start_segment_id][j]])
-					# allpath[i] = np.append(allpath[i], [i, allpath[start_segment_id][j]], axis = 0)
 
 						
 				if fol[i] == []:
-					# break
 					pass
 
-		# print("data", i , data[i])
 		topoSortGenePred2(gfa, i)
 
 	return 0
@@ -531,17 +595,20 @@ state_num = int(sys.argv[3])
 # dimension of the HMM
 N = 5
 
+print("Probability")
+start = time.time()
+
 start_probability = np.random.rand(state_num)
 start_probability = start_probability / np.sum(start_probability)
 
-transition_probability = np.random.rand(state_num, state_num)
+transition_probability_ = np.random.rand(state_num)
 
 for i in range(state_num):
-	for j in range(state_num):
-		if transition_probability[i][j] <= float(sys.argv[2]):
-			transition_probability[i][j] = 0
 
-	transition_probability[i] = transition_probability[i] / np.sum(transition_probability[i])
+	if transition_probability_[i] <= float(sys.argv[2]):
+		transition_probability_[i] = 0
+
+transition_probability = np.tile(transition_probability_, (state_num, 1))
 
 transition_probability_CSR = csr_matrix(transition_probability.T)
 
@@ -552,8 +619,8 @@ indptr = np.array(transition_probability_CSR.indptr)
 emission_probability = np.random.rand(state_num, 4)
 for i in range(state_num):
 	emission_probability[i] = emission_probability[i] / np.sum(emission_probability[i])
-
-# emission_probability = np.array(emission_probability, order='F')
+end = time.time()
+print("Probability prepared. Time taken: " + str(end - start) + "s")
 
 print("Data loading started.")
 
@@ -646,7 +713,7 @@ for k in range(len(allpath[-1])):
 	f.flush()
 	f.write("\n")
 	f.flush()
-	print(data[-1][k])
+	print(np.argmax(data[-1][k]))
 
 f.close()
 
